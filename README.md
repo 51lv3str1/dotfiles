@@ -14,4 +14,4 @@ My personal configuration dotfiles
 - [Niri](https://yalter.github.io/niri/) - A scrollable-tiling Wayland compositor.
 - [Quickshell](https://quickshell.org/) - building blocks for your desktop.
 - [DankMaterialShell](https://danklinux.com/) - Desktop shell for wayland compositors built with Quickshell & GO, optimized for niri, hyprland, sway, MangoWC, and labwc.
-- [Neovim](https://neovim.io/) -hyperextensible Vim-based text editor.
+- [Neovim](https://neovim.io/) - hyperextensible Vim-based text editor.
