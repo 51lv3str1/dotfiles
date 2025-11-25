@@ -13,3 +13,4 @@ My personal configuration dotfiles
 - [Yazi](https://yazi-rs.github.io/) - Blazing fast terminal file manager written in Rust, based on async I/O.
 - [Niri](https://yalter.github.io/niri/) - A scrollable-tiling Wayland compositor.
 - [Quickshell](https://quickshell.org/) - building blocks for your desktop.
+- [DankMaterialShell](https://danklinux.com/) - Desktop shell for wayland compositors built with Quickshell & GO, optimized for niri, hyprland, sway, MangoWC, and labwc.
