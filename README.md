@@ -29,10 +29,19 @@ My personal configuration files for a customized and productive Linux environmen
 ---
 
 ## 🚀 Getting Started
+
+- ### Install GNU Stow
+[GNU Stow](https://www.gnu.org/software/stow/) is used to symlink dotfiles into your home directory for clean management.
+
+- ### Clone Git repository
 Clone the repository and symlink the configs to your home directory:
 
 ```bash
 git clone https://github.com/51lv3str1/dotfiles ~/dotfiles
 cd ~/dotfiles
+```
+
+- ### symlink
+```bash
 stow .
 ```
