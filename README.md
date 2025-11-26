@@ -1,9 +1,3 @@
-<div id="top"></div>
-
-<h3 align="center">✨dotfiles ✨</h3>
-
----
-
 ## About
 My personal configuration files for a customized and productive Linux environment.
 
@@ -37,8 +31,8 @@ My personal configuration files for a customized and productive Linux environmen
 ## 🚀 Getting Started
 Clone the repository and symlink the configs to your home directory:
 
-```ba
 ```bash
 git clone https://github.com/51lv3str1/dotfiles ~/dotfiles
 cd ~/dotfiles
 stow .
+```
