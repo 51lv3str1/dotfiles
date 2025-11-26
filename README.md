@@ -1,13 +1,15 @@
 <div id="top"></div>
 
-<h3 align="center">dotfiles</h3>
+<h3 align="center">✨dotfiles ✨</h3>
 
-<br />
+---
 
 ## About
-My personal configuration dotfiles
+My personal configuration files for a customized and productive Linux environment.
 
-## ⚡ Features
+---
+
+## Features
 
 ### Compositor
 - [Niri](https://yalter.github.io/niri/) - A scrollable-tiling Wayland compositor.
@@ -29,3 +31,14 @@ My personal configuration dotfiles
 
 ### Shell
 - [ZSH](https://www.zsh.org/) - Zsh is a shell designed for interactive use, although it is also a powerful scripting language.
+
+---
+
+## 🚀 Getting Started
+Clone the repository and symlink the configs to your home directory:
+
+```ba
+```bash
+git clone https://github.com/51lv3str1/dotfiles ~/dotfiles
+cd ~/dotfiles
+stow .
