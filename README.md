@@ -24,6 +24,8 @@ My personal configuration files for a customized and productive Linux environmen
 - [Alacritty](https://alacritty.org/) - Alacritty is a modern terminal emulator that comes with sensible defaults, but allows for extensive configuration.
 
 ### Shell
+- [ohmyzsh](https://ohmyz.sh/) - Oh My Zsh is a delightful, open source, community-driven framework for managing your Zsh configuration. It comes bundled with thousands of helpful functions.
+- [Starship](https://starship.rs/) - Starship is the minimal, blazing fast, and extremely customizable prompt for any shell! Shows the information you need, while staying sleek and minimal.
 - [ZSH](https://www.zsh.org/) - Zsh is a shell designed for interactive use, although it is also a powerful scripting language.
 
 ---
