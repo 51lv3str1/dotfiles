@@ -51,7 +51,7 @@ input {
         xkb {
 		layout "us,us"
       		variant "workman-intl,"
-      		options "grp:alt_shift_toggle"
+      		options "grp:win_space_toggle"
       		model "pc105"
         }
         numlock
@@ -266,7 +266,7 @@ binds {
 
     // === Application Launchers ===
     Mod+T hotkey-overlay-title="Open Terminal" { spawn "alacritty"; }
-    Mod+Space hotkey-overlay-title="Application Launcher" {
+    Mod+A hotkey-overlay-title="Application Launcher" {
         spawn "dms" "ipc" "call" "spotlight" "toggle";
     }
     Mod+V hotkey-overlay-title="Clipboard Manager" {
