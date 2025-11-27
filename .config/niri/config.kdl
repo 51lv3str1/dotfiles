@@ -49,6 +49,10 @@ gestures {
 input {
     keyboard {
         xkb {
+		layout "us,us"
+      		variant "workman-intl,"
+      		options "grp:alt_shift_toggle"
+      		model "pc105"
         }
         numlock
     }

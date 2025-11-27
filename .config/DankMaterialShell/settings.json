@@ -105,9 +105,22 @@
   "lockDateFormat": "",
   "mediaSize": 1,
   "dankBarLeftWidgets": [
-    "launcherButton",
-    "workspaceSwitcher",
-    "focusedWindow"
+    {
+      "id": "launcherButton",
+      "enabled": true
+    },
+    {
+      "id": "workspaceSwitcher",
+      "enabled": true
+    },
+    {
+      "id": "keyboard_layout_name",
+      "enabled": true
+    },
+    {
+      "id": "focusedWindow",
+      "enabled": true
+    }
   ],
   "dankBarCenterWidgets": [
     "music",
