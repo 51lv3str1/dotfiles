@@ -233,6 +233,7 @@ window-rule {
     match app-id="zen"
     match app-id="com.mitchellh.ghostty"
     match app-id="kitty"
+    opacity 0.9
     draw-border-with-background false
 }
 window-rule {
@@ -247,10 +248,6 @@ window-rule {
 window-rule {
     geometry-corner-radius 12
     clip-to-geometry true
-}
-window-rule {
-    match app-id="Alacritty"
-    opacity 0.9
 }
 window-rule {
     match app-id="AWS VPN Client"
