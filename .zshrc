@@ -119,6 +119,8 @@ alias clip="wl-copy <"
 alias grep="rg"
 alias cd="z"
 alias ss="astroterm"
+alias lzg="lazygit"
+alias lzd="lazydocker"
 
 eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
