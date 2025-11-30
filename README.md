@@ -15,7 +15,7 @@ My personal configuration files for a customized and productive Linux environmen
 ### Development
 
 ### Editors
-- [Neovim](https://neovim.io/) - hyperextensible Vim-based text editor.editor
+- [Neovim](https://neovim.io/) - hyperextensible Vim-based text editor.
 
 ### File System
 - [Yazi](https://yazi-rs.github.io/) - Blazing fast terminal file manager written in Rust, based on async I/O.
