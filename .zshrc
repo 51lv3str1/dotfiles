@@ -80,6 +80,7 @@ source $ZSH/oh-my-zsh.sh
 export PATH=$HOME/.local/bin:$PATH
 export PATH=$PATH:$(go env GOPATH)/bin
 export PATH=$HOME/.local/share/coursier/bin:$PATH
+export PATH=$HOME/.cargo/bin:$PATH
 export QML2_IMPORT_PATH=/usr/local/lib/qml
 export LD_LIBRARY_PATH=/usr/local/lib/qml/Quickshell:$LD_LIBRARY_PATH
 export XDG_CURRENT_DESKTOP=niri
@@ -113,7 +114,6 @@ alias starshipconfig="vi ~/.config/starship.toml"
 alias alacrittyconfig="vi ~/.config/alacritty/alacritty.toml"
 alias bat="batcat"
 alias cat="batcat"
-alias zig="/opt/zig/zig"
 alias outputs="niri msg outputs"
 alias clip="wl-copy"
 alias grep="rg"
