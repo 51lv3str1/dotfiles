@@ -162,7 +162,7 @@
   "networkPreference": "auto",
   "vpnLastConnected": "",
   "iconTheme": "Yaru-purple-dark",
-  "launcherLogoMode": "apps",
+  "launcherLogoMode": "os",
   "launcherLogoCustomPath": "",
   "launcherLogoColorOverride": "",
   "launcherLogoColorInvertOnMode": false,
