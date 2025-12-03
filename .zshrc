@@ -107,11 +107,11 @@ export XDG_CURRENT_DESKTOP=niri
 # For a full list of active aliases, run `alias`.
 #
 # Example aliases
-alias zshconfig="vi ~/.zshrc"
-alias ohmyzsh="vi ~/.oh-my-zsh"
-alias niriconfig="vi ~/.config/niri/config.kdl"
-alias starshipconfig="vi ~/.config/starship.toml"
-alias alacrittyconfig="vi ~/.config/alacritty/alacritty.toml"
+alias zshconfig="nvim ~/.zshrc"
+alias ohmyzsh="nvim ~/.oh-my-zsh"
+alias niriconfig="nvim ~/.config/niri/config.kdl"
+alias starshipconfig="nvim ~/.config/starship.toml"
+alias alacrittyconfig="nvim ~/.config/alacritty/alacritty.toml"
 alias bat="batcat"
 alias cat="batcat"
 alias outputs="niri msg outputs"
