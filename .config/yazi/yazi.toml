@@ -1,0 +1,7 @@
+[opener]
+
+open = [
+  { run = "code %s", block = false, desc = "Open folder in VS Code" },
+  { run = "nvim %s", block = true, desc = "Open folder in Neovim" }
+]
+
