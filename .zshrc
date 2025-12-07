@@ -81,6 +81,7 @@ export PATH=$HOME/.local/bin:$PATH
 export PATH=$PATH:$(go env GOPATH)/bin
 export PATH=$HOME/.local/share/coursier/bin:$PATH
 export PATH=$HOME/.cargo/bin:$PATH
+export PATH=$HOME/.nvm/versions/node/v24.11.1/bin:$PATH # put the node version on which GEMINI was installed
 export QML2_IMPORT_PATH=/usr/local/lib/qml
 export LD_LIBRARY_PATH=/usr/local/lib/qml/Quickshell:$LD_LIBRARY_PATH
 export XDG_CURRENT_DESKTOP=niri
