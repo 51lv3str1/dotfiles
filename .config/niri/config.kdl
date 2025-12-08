@@ -269,8 +269,11 @@ binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
 
     // === Application Launchers ===
-    
+
     Mod+T hotkey-overlay-title="Open Terminal" { spawn "alacritty"; }
+    Mod+B hotkey-overlay-title="Open Web Browser" { 
+        spawn "google-chrome";
+    }
     Mod+D hotkey-overlay-title="Open File Manager" { 
         spawn "alacritty" "-e" "yazi";
     }
