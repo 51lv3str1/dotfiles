@@ -1,7 +1,18 @@
 [opener]
+image = [
+  { run = "swayimg %s", block = false, desc = "Open image in Swayimg" },
+  { run = "swayimg --gallery" , block = false, desc = "Open gallery in Swayimg" }
+]
 
-open = [
-  { run = "code %s", block = false, desc = "Open folder in VS Code" },
-  { run = "nvim %s", block = true, desc = "Open folder in Neovim" }
+edit = [
+  { run = "nvim %s", block = true, desc = "Open in Neovim" },
+  { run = "code %s", block = false, desc = "Open in VS Code" }
+]
+
+[open]
+rules = [
+  { mime = "image/*", use = "image" },
+  { mime = "text/*", use = "edit" },
+  { mime = "*/", use = "edit" }
 ]
 
