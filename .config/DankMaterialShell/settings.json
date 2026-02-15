@@ -186,7 +186,7 @@
   "vpnLastConnected": "",
   "iconTheme": "Yaru-purple-dark",
   "cursorSettings": {
-    "theme": "System Default",
+    "theme": "Yaru",
     "size": 24,
     "niri": {
       "hideWhenTyping": false,
