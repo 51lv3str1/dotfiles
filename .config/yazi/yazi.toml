@@ -15,4 +15,11 @@ rules = [
   { mime = "text/*", use = "edit" },
   { mime = "*/", use = "edit" }
 ]
+[preview]
+rules = [
+  { ext = "jpg", run = "chafa %s" },
+  { ext = "jpeg", run = "chafa %s" },
+  { ext = "png", run = "chafa %s" },
+  { ext = "gif", run = "chafa %s" }
+]
 
