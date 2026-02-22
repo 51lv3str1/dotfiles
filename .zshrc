@@ -85,6 +85,7 @@ export PATH=$HOME/.nvm/versions/node/v24.11.1/bin:$PATH # put the node version o
 export QML2_IMPORT_PATH=/usr/local/lib/qml
 export LD_LIBRARY_PATH=/usr/local/lib/qml/Quickshell:$LD_LIBRARY_PATH
 export XDG_CURRENT_DESKTOP=niri
+export PATH="$HOME/.cargo/bin:$PATH"
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
@@ -117,8 +118,8 @@ alias cat="batcat"
 alias clip="wl-copy"
 alias grep="rg"
 alias cd="z"
-alias lzg="lazygit"
-alias lzd="lazydocker"
+alias lg="lazygit"
+alias ld="lazydocker"
 alias jira="jiratui ui"
 
 eval "$(starship init zsh)"
@@ -145,4 +146,6 @@ lazy_nvm() {
 nvm() { lazy_nvm; nvm "$@"; }
 node() { lazy_nvm; node "$@"; }
 npm() { lazy_nvm; npm "$@"; }
+npx() { lazy_nvm; npx "$@"; }
 
+fastfetch
