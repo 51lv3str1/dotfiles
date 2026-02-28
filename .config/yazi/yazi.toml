@@ -6,16 +6,14 @@ image = [
 
 edit = [
   { run = "nvim %s", block = true, desc = "Open in Neovim" },
-  { run = "code %s", block = false, desc = "Open in VS Code" }
+  { run = "code %s", block = false, desc = "Open in VS Code" },
+  { run = "tmux new-session -d -s $(basename %s) -c %s 'nvim %s'; tmux split-window -v -c %s -p 15; tmux select-pane -U; tmux split-window -h -c %s -p 15; tmux send-keys 'opencode' C-m; tmux select-pane -D; tmux split-window -h -c %s -p 15; tmux send-keys 'lazygit' C-m; tmux select-pane -L; tmux split-window -h -c %s -p 85; tmux select-pane -L; tmux send-keys 'lazydocker' C-m; tmux attach -t $(basename %s)", block = true, desc = "Open with tmux with dev layout" }
 ]
 
 [open]
 rules = [
   { mime = "image/*", use = "image" },
   { mime = "text/*", use = "edit" },
-  { mime = "*/", use = "edit" }
+  { mime = "*/", use = "edit" },
+  { mime = "inode/directory", use = "edit" }
 ]
-
-  [log]
-level = "debug"
-
