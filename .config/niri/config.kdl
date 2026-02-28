@@ -51,7 +51,7 @@ input {
         xkb {
 		layout "us,us"
       		variant "workman-intl,"
-      		options "grp:win_space_toggle"
+      		// options "grp:win_space_toggle"
       		model "pc105"
         }
         numlock
@@ -467,7 +467,4 @@ debug {
     honor-xdg-activation-with-invalid-serial
 }
 
-include "dms/cursor.kdl"
-
-include "dms/outputs.kdl"
 include "dms/binds.kdl"
