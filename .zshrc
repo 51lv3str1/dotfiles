@@ -76,16 +76,17 @@ source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
-# export MANPATH="/usr/local/man:$MANPATH"
+export MANPATH="/usr/local/man:$MANPATH"
 export PATH=$HOME/.local/bin:$PATH
 export PATH=$PATH:$(go env GOPATH)/bin
 export PATH=$HOME/.local/share/coursier/bin:$PATH
 export PATH=$HOME/.cargo/bin:$PATH
-export PATH=$HOME/.nvm/versions/node/v24.11.1/bin:$PATH # put the node version on which GEMINI was installed
+export PATH=$HOME/.nvm/versions/node/v24.11.1/bin:$PATH
 export QML2_IMPORT_PATH=/usr/local/lib/qml
 export LD_LIBRARY_PATH=/usr/local/lib/qml/Quickshell:$LD_LIBRARY_PATH
 export XDG_CURRENT_DESKTOP=niri
 export PATH="$HOME/.cargo/bin:$PATH"
+export PATH=/home/silver/.opencode/bin:$PATH
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
@@ -115,13 +116,18 @@ alias niriconfig="nvim ~/.config/niri/config.kdl"
 alias starshipconfig="nvim ~/.config/starship.toml"
 alias alacrittyconfig="nvim ~/.config/alacritty/alacritty.toml"
 alias cat="batcat"
+alias top="btop"
 alias clip="wl-copy"
 alias grep="rg"
 alias cd="z"
 alias lg="lazygit"
 alias ld="lazydocker"
 alias jira="jiratui ui"
-
+alias tks="tmux kill-server"
+alias tkss="tmux kill-session"
+alias tls="tmux ls"
+alias ta="tmux attach"
+alias rss="eilmeldung"
 eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
 eval "$(fzf --zsh)"
@@ -147,5 +153,3 @@ nvm() { lazy_nvm; nvm "$@"; }
 node() { lazy_nvm; node "$@"; }
 npm() { lazy_nvm; npm "$@"; }
 npx() { lazy_nvm; npx "$@"; }
-
-fastfetch
