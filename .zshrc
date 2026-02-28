@@ -78,15 +78,9 @@ source $ZSH/oh-my-zsh.sh
 
 export MANPATH="/usr/local/man:$MANPATH"
 export PATH=$HOME/.local/bin:$PATH
-export PATH=$PATH:$(go env GOPATH)/bin
-export PATH=$HOME/.local/share/coursier/bin:$PATH
+export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:$HOME/go/bin
 export PATH=$HOME/.cargo/bin:$PATH
-export PATH=$HOME/.nvm/versions/node/v24.11.1/bin:$PATH
-export QML2_IMPORT_PATH=/usr/local/lib/qml
-export LD_LIBRARY_PATH=/usr/local/lib/qml/Quickshell:$LD_LIBRARY_PATH
-export XDG_CURRENT_DESKTOP=niri
-export PATH="$HOME/.cargo/bin:$PATH"
-export PATH=/home/silver/.opencode/bin:$PATH
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
@@ -128,6 +122,7 @@ alias tkss="tmux kill-session"
 alias tls="tmux ls"
 alias ta="tmux attach"
 alias rss="eilmeldung"
+
 eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
 eval "$(fzf --zsh)"
@@ -153,3 +148,5 @@ nvm() { lazy_nvm; nvm "$@"; }
 node() { lazy_nvm; node "$@"; }
 npm() { lazy_nvm; npm "$@"; }
 npx() { lazy_nvm; npx "$@"; }
+
+fpath+=${ZDOTDIR:-~}/.zsh_functions
