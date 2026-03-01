@@ -30,6 +30,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 
   # Homebrew
   eval "$(/opt/homebrew/bin/brew shellenv)"
+  export PKG_CONFIG_PATH="/opt/homebrew/opt/libxml2/lib/pkgconfig"
   alias update="brew update && brew upgrade && brew cleanup"
 else
   # Linux
@@ -40,6 +41,10 @@ else
 fi
 
 # ─── Aliases comunes ──────────────────────────────────────────
+alias ls="eza --icons"
+alias ll="eza -lh --icons --git"
+alias la="eza -lah --icons --git"
+alias lt="eza --tree --icons"
 alias zshconfig="nvim ~/.zshrc"
 alias ohmyzsh="nvim ~/.oh-my-zsh"
 alias starshipconfig="nvim ~/.config/starship.toml"
@@ -47,10 +52,6 @@ alias alacrittyconfig="nvim ~/.config/alacritty/alacritty.toml"
 alias top="btop"
 alias grep="rg"
 alias cd="z"
-alias ls="eza --icons"
-alias ll="eza -lh --icons --git"
-alias la="eza -lah --icons --git"
-alias lt="eza --tree --icons"
 alias lg="lazygit"
 alias ld="lazydocker"
 alias jira="jiratui ui"
