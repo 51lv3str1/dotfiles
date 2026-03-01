@@ -31,13 +31,15 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   # Homebrew
   eval "$(/opt/homebrew/bin/brew shellenv)"
   export PKG_CONFIG_PATH="/opt/homebrew/opt/libxml2/lib/pkgconfig"
-  alias update="brew update && brew upgrade && brew cleanup"
+
+  alias update="brew update && brew upgrade && brew cleanup && cargo install-update -a"
 else
   # Linux
   alias cat="batcat"
   alias clip="wl-copy"
   alias niriconfig="nvim ~/.config/niri/config.kdl"
-  alias update="sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y && sudo apt autoclean"
+
+  alias update="sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y && sudo apt autoclean && cargo install-update -a"
 fi
 
 # ─── Aliases comunes ──────────────────────────────────────────
@@ -89,3 +91,4 @@ npm() { lazy_nvm; npm "$@"; }
 npx() { lazy_nvm; npx "$@"; }
 
 fpath+=${ZDOTDIR:-~}/.zsh_functions
+
