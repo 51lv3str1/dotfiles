@@ -47,3 +47,87 @@ cd ~/dotfiles
 ```bash
 stow .
 ```
+
+Before installing the tools, you need to set up the following package managers and runtimes:
+
+### Rust & Cargo
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+```
+
+### cargo-update (keep cargo installs up to date)
+```bash
+cargo install cargo-update
+```
+
+### Homebrew
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+### nvm (Node Version Manager)
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+nvm install --lts
+```
+
+### SDKMAN (Java/JVM toolchain manager)
+```bash
+sudo apt install zip unzip
+curl -s "https://get.sdkman.io" | bash
+```
+
+---
+
+## 📦 Tools
+
+| Tool | Method | Install |
+|------|--------|---------|
+| zsh | apt | `sudo apt install zsh` |
+| oh-my-zsh | curl script | `sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"` |
+| GNU Stow | apt | `sudo apt install stow` |
+| Chrome | .deb from web | Download from [google.com/chrome](https://www.google.com/chrome) |
+| Starship | curl script | `curl -sS https://starship.rs/install.sh \| sh` |
+| git | apt | `sudo apt install git` |
+| GitHub CLI | official repo | `sudo apt install gh` |
+| Homebrew | curl script | See prerequisites |
+| Alacritty | cargo install | `cargo install alacritty` |
+| Go | brew install | `brew install go` |
+| zoxide | cargo install | `cargo install zoxide` |
+| fzf | apt | `sudo apt install fzf` |
+| bat | apt | `sudo apt install bat` |
+| btop | apt | `sudo apt install btop` |
+| wl-clipboard | apt | `sudo apt install wl-clipboard` |
+| ripgrep | apt | `sudo apt install ripgrep` |
+| tmux | apt | `sudo apt install tmux` |
+| lazygit | apt | `sudo apt install lazygit` |
+| eilmeldung | cargo install --git | `cargo install --git https://github.com/christo-auer/eilmeldung` |
+| lazydocker | go install | `go install github.com/jesseduffield/lazydocker@latest` |
+| SDKMAN | curl script | See prerequisites |
+| Node.js | nvm | `nvm install --lts` |
+| yazi | cargo install | `cargo install --locked yazi-fm yazi-cli` |
+| chafa | apt | `sudo apt install chafa` |
+| ffmpeg | apt | `sudo apt install ffmpeg` |
+| poppler-utils | apt | `sudo apt install poppler-utils` |
+| imagemagick | apt | `sudo apt install imagemagick` |
+| fd-find | apt | `sudo apt install fd-find` |
+| 7zip | apt | `sudo apt install 7zip` |
+| jq | apt | `sudo apt install jq` |
+| resvg | cargo install | `cargo install resvg` |
+| kimageformat-plugins | apt | `sudo apt install kimageformat-plugins` |
+| Neovim | brew install | `brew install neovim` |
+| fastfetch | apt | `sudo apt install fastfetch` |
+| Claude Code | native installer | `curl -fsSL https://claude.ai/install.sh \| bash` |
+| eza | apt | `sudo apt install eza` |
+| glow | apt | `sudo apt install glow` |
+
+---
+
+## 🔄 Update Everything
+
+```bash
+sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y && brew upgrade && cargo install-update -a
+```
