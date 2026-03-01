@@ -161,6 +161,8 @@ sudo apt install gh
 | glow | brew install | `brew install glow` |
 | khal | apt | `sudo apt install khal` |
 | fprintd | apt | `sudo apt install fprintd` |
+| greetd | apt | `sudo apt install greetd` |
+| dms-greeter | apt | `sudo apt install dms-greeter` |
 
 ### Install all brew tools at once
 ```bash
