@@ -1,6 +1,6 @@
 # dotfiles
 
-My personal configuration files for a customized and productive Linux environment.
+My personal configuration files for a customized and productive Linux environment running **Debian 13 (Trixie)** with **Niri** + **DankMaterialShell**.
 
 ---
 
@@ -31,49 +31,48 @@ My personal configuration files for a customized and productive Linux environmen
 
 ## 🚀 Getting Started
 
-### 1. Install GNU Stow
-
-[GNU Stow](https://www.gnu.org/software/stow/) is used to symlink dotfiles into your home directory for clean management.
+### 1. Base system packages
 
 ```bash
-sudo apt install stow
+sudo apt update && sudo apt upgrade -y
+sudo apt install git curl build-essential pkg-config libssl-dev zip unzip stow \
+  libfontconfig1-dev libxml2-dev libclang-dev libsqlite3-dev
 ```
 
-### 2. Clone the repository
+### 2. ZSH + Oh My Zsh
+
+```bash
+sudo apt install zsh
+chsh -s $(which zsh)
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+```
+
+### 3. Clone the repository
 
 ```bash
 git clone https://github.com/51lv3str1/dotfiles ~/dotfiles
 cd ~/dotfiles
 ```
 
-### 3. Symlink configs
+### 4. Symlink configs
 
 ```bash
 stow .
 ```
 
+### 5. Clone assets
+
+```bash
+cd ~/.local/share
+git clone https://github.com/51lv3str1/backgrounds
+git clone https://github.com/51lv3str1/icons
+git clone https://github.com/51lv3str1/fonts
+git clone https://github.com/51lv3str1/sounds
+```
+
 ---
 
-## 🔧 Prerequisites
-
-Before installing the tools, set up the following package managers and runtimes:
-
-### System dependencies
-```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install git curl build-essential pkg-config libssl-dev zip unzip
-```
-
-### ZSH
-```bash
-sudo apt install zsh
-chsh -s $(which zsh)
-```
-
-### Oh My Zsh
-```bash
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-```
+## 🔧 Package Managers & Runtimes
 
 ### Rust & Cargo
 ```bash
@@ -82,7 +81,6 @@ source ~/.cargo/env
 ```
 
 ### cargo-update
-Keep cargo installs up to date:
 ```bash
 cargo install cargo-update
 ```
@@ -97,12 +95,24 @@ source ~/.zshrc
 ### nvm (Node Version Manager)
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+source ~/.zshrc
 nvm install --lts
 ```
 
 ### SDKMAN (Java/JVM toolchain manager)
 ```bash
 curl -s "https://get.sdkman.io" | bash
+source ~/.zshrc
+```
+
+### Starship
+```bash
+curl -sS https://starship.rs/install.sh | sh
+```
+
+### GitHub CLI
+```bash
+sudo apt install gh
 ```
 
 ---
@@ -117,9 +127,9 @@ curl -s "https://get.sdkman.io" | bash
 | Chrome | .deb from web | Download from [google.com/chrome](https://www.google.com/chrome) |
 | Starship | curl script | `curl -sS https://starship.rs/install.sh \| sh` |
 | git | apt | `sudo apt install git` |
-| GitHub CLI | official repo | `sudo apt install gh` |
-| Homebrew | curl script | See prerequisites |
-| Alacritty | cargo install | `cargo install alacritty && sudo cp ~/.cargo/bin/alacritty /usr/local/bin/` |
+| GitHub CLI | apt | `sudo apt install gh` |
+| Homebrew | curl script | See above |
+| Alacritty | cargo install | See below |
 | Go | brew install | `brew install go` |
 | zoxide | brew install | `brew install zoxide` |
 | fzf | brew install | `brew install fzf` |
@@ -130,8 +140,8 @@ curl -s "https://get.sdkman.io" | bash
 | tmux | brew install | `brew install tmux` |
 | lazygit | brew install | `brew install lazygit` |
 | lazydocker | brew install | `brew install lazydocker` |
-| eilmeldung | cargo install --git | `cargo install --git https://github.com/christo-auer/eilmeldung` |
-| SDKMAN | curl script | See prerequisites |
+| eilmeldung | cargo install --git | See below |
+| SDKMAN | curl script | See above |
 | Node.js | nvm | `nvm install --lts` |
 | yazi | brew install | `brew install yazi` |
 | chafa | brew install | `brew install chafa` |
@@ -141,23 +151,61 @@ curl -s "https://get.sdkman.io" | bash
 | fd-find | brew install | `brew install fd` |
 | 7zip | apt | `sudo apt install 7zip` |
 | jq | brew install | `brew install jq` |
-| resvg | cargo install | `cargo install resvg` |
+| resvg | brew install | `brew install resvg` |
 | kimageformat-plugins | apt | `sudo apt install kimageformat-plugins` |
+| qtimageformats | brew install | `brew install qtimageformats` |
 | Neovim | brew install | `brew install neovim` |
 | fastfetch | brew install | `brew install fastfetch` |
 | Claude Code | native installer | `curl -fsSL https://claude.ai/install.sh \| bash` |
 | eza | brew install | `brew install eza` |
 | glow | brew install | `brew install glow` |
+| khal | apt | `sudo apt install khal` |
+| fprintd | apt | `sudo apt install fprintd` |
 
 ### Install all brew tools at once
 ```bash
-brew install go fzf bat btop ripgrep tmux lazygit lazydocker chafa ffmpeg imagemagick fd jq fastfetch eza glow neovim zoxide yazi
+brew install go fzf bat btop ripgrep tmux lazygit lazydocker chafa ffmpeg imagemagick fd jq fastfetch eza glow neovim zoxide yazi resvg qtimageformats
 ```
 
-### Install Alacritty and make it globally available
+### Install all apt extras at once
+```bash
+sudo apt install wl-clipboard poppler-utils 7zip kimageformat-plugins khal fprintd
+```
+
+### Alacritty
+Alacritty must be installed via cargo and copied to a global path so it works in all desktop environments (GNOME, Niri, KDE, etc.):
 ```bash
 cargo install alacritty
 sudo cp ~/.cargo/bin/alacritty /usr/local/bin/alacritty
+```
+
+Then create a `.desktop` entry:
+```bash
+cat > ~/.local/share/applications/alacritty.desktop << 'EOF'
+[Desktop Entry]
+Name=Alacritty
+Comment=A fast, cross-platform, OpenGL terminal emulator
+Exec=alacritty
+Icon=/home/silver/.local/share/icons/Alacritty.svg
+Type=Application
+Categories=System;TerminalEmulator;
+Keywords=terminal;shell;
+StartupNotify=true
+Terminal=false
+EOF
+update-desktop-database ~/.local/share/applications/
+```
+
+### eilmeldung (RSS reader)
+Requires system dependencies before building:
+```bash
+sudo apt install libxml2-dev libclang-dev libsqlite3-dev
+cargo install --git https://github.com/christo-auer/eilmeldung
+```
+
+### Claude Code
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
 ```
 
 ---
@@ -206,13 +254,31 @@ Log out and log back in selecting **niri-session**.
 
 | Package | Purpose |
 |---------|---------|
-| `niri` | Recommended Wayland compositor |
-| `dgop` | System telemetry for resource widgets |
+| `niri` | Recommended Wayland compositor (installed with dms) |
+| `dgop` | System telemetry for resource widgets (installed with dms) |
 | `dsearch` | Filesystem search engine (installed with dms) |
-| `matugen` | Material Design color palette generation |
-| `cliphist` | Clipboard history |
+| `matugen` | Material Design color palette generation (installed with dms) |
 | `cava` | Audio visualizer widget (installed with dms) |
+| `cliphist` | Clipboard history |
 | `qt6-multimedia` | System sound feedback |
+| `qtimageformats` | Extended image format support |
+| `khal` | Calendar integration |
+| `fprintd` | Fingerprint authentication |
+
+### Verify installation
+```bash
+dms doctor
+```
+
+---
+
+## ⚙️ Neovim
+
+Neovim is installed via brew. Configuration uses [LazyVim](https://lazyvim.org/).
+
+Theme: **Catppuccin Mocha** with custom background color `hsl(233.33deg 24.32% 14.51%)`.
+
+Config lives in `~/.config/nvim/`.
 
 ---
 
@@ -221,3 +287,12 @@ Log out and log back in selecting **niri-session**.
 ```bash
 sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y && brew upgrade && cargo install-update -a
 ```
+
+---
+
+## 📝 Notes
+
+- Binaries installed with `cargo install` must be copied to `/usr/local/bin/` to be available globally across all desktop environments.
+- `XDG_DATA_DIRS` must include `$HOME/.local/share` for custom `.desktop` files to appear in app launchers. This is set in `~/.config/environment.d/xdg.conf`.
+- The DankLinux installer (`dankinstall`) adds the `danklinux` repo but **not** the `dms` repo — both must be added manually as shown above.
+- `bat` is installed via brew (not apt) so the binary is called `bat` directly, not `batcat`.
