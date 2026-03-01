@@ -39,7 +39,7 @@ else
   alias clip="wl-copy"
   alias niriconfig="nvim ~/.config/niri/config.kdl"
 
-  alias update="sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y && sudo apt autoclean && cargo install-update -a"
+  alias update="sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y && brew upgrade && cargo install-update -a"
 fi
 
 # ─── Aliases comunes ──────────────────────────────────────────
