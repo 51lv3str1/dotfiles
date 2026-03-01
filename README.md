@@ -1,4 +1,5 @@
-## About
+# dotfiles
+
 My personal configuration files for a customized and productive Linux environment.
 
 ---
@@ -10,45 +11,52 @@ My personal configuration files for a customized and productive Linux environmen
 
 ### Desktop Shell
 - [DankMaterialShell](https://danklinux.com/) - Desktop shell for wayland compositors built with Quickshell & GO, optimized for niri, hyprland, sway, MangoWC, and labwc.
-- [Quickshell](https://quickshell.org/) - building blocks for your desktop.
-
-### Development
+- [Quickshell](https://quickshell.org/) - Building blocks for your desktop.
 
 ### Editors
-- [Neovim](https://neovim.io/) - hyperextensible Vim-based text editor.
+- [Neovim](https://neovim.io/) - Hyperextensible Vim-based text editor.
 
 ### File System
 - [Yazi](https://yazi-rs.github.io/) - Blazing fast terminal file manager written in Rust, based on async I/O.
 
 ### Terminal
-- [Alacritty](https://alacritty.org/) - Alacritty is a modern terminal emulator that comes with sensible defaults, but allows for extensive configuration.
+- [Alacritty](https://alacritty.org/) - A modern terminal emulator with sensible defaults and extensive configuration.
 
 ### Shell
-- [ohmyzsh](https://ohmyz.sh/) - Oh My Zsh is a delightful, open source, community-driven framework for managing your Zsh configuration. It comes bundled with thousands of helpful functions.
-- [Starship](https://starship.rs/) - Starship is the minimal, blazing fast, and extremely customizable prompt for any shell! Shows the information you need, while staying sleek and minimal.
-- [ZSH](https://www.zsh.org/) - Zsh is a shell designed for interactive use, although it is also a powerful scripting language.
+- [ZSH](https://www.zsh.org/) - A shell designed for interactive use and powerful scripting.
+- [Oh My Zsh](https://ohmyz.sh/) - Community-driven framework for managing Zsh configuration.
+- [Starship](https://starship.rs/) - Minimal, blazing fast, and extremely customizable prompt for any shell.
 
 ---
 
 ## 🚀 Getting Started
 
-- ### Install GNU Stow
+### 1. Install GNU Stow
+
 [GNU Stow](https://www.gnu.org/software/stow/) is used to symlink dotfiles into your home directory for clean management.
 
-- ### Clone Git repository
-Clone the repository and symlink the configs to your home directory:
+```bash
+sudo apt install stow
+```
+
+### 2. Clone the repository
 
 ```bash
 git clone https://github.com/51lv3str1/dotfiles ~/dotfiles
 cd ~/dotfiles
 ```
 
-- ### symlink
+### 3. Symlink configs
+
 ```bash
 stow .
 ```
 
-Before installing the tools, you need to set up the following package managers and runtimes:
+---
+
+## 🔧 Prerequisites
+
+Before installing the tools, set up the following package managers and runtimes:
 
 ### Rust & Cargo
 ```bash
@@ -56,7 +64,8 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source ~/.cargo/env
 ```
 
-### cargo-update (keep cargo installs up to date)
+### cargo-update
+Keep cargo installs up to date:
 ```bash
 cargo install cargo-update
 ```
@@ -97,32 +106,32 @@ curl -s "https://get.sdkman.io" | bash
 | Alacritty | cargo install | `cargo install alacritty` |
 | Go | brew install | `brew install go` |
 | zoxide | cargo install | `cargo install zoxide` |
-| fzf | apt | `sudo apt install fzf` |
-| bat | apt | `sudo apt install bat` |
-| btop | apt | `sudo apt install btop` |
+| fzf | brew install | `brew install fzf` |
+| bat | brew install | `brew install bat` |
+| btop | brew install | `brew install btop` |
 | wl-clipboard | apt | `sudo apt install wl-clipboard` |
-| ripgrep | apt | `sudo apt install ripgrep` |
-| tmux | apt | `sudo apt install tmux` |
-| lazygit | apt | `sudo apt install lazygit` |
+| ripgrep | brew install | `brew install ripgrep` |
+| tmux | brew install | `brew install tmux` |
+| lazygit | brew install | `brew install lazygit` |
 | eilmeldung | cargo install --git | `cargo install --git https://github.com/christo-auer/eilmeldung` |
 | lazydocker | go install | `go install github.com/jesseduffield/lazydocker@latest` |
 | SDKMAN | curl script | See prerequisites |
 | Node.js | nvm | `nvm install --lts` |
 | yazi | cargo install | `cargo install --locked yazi-fm yazi-cli` |
-| chafa | apt | `sudo apt install chafa` |
-| ffmpeg | apt | `sudo apt install ffmpeg` |
+| chafa | brew install | `brew install chafa` |
+| ffmpeg | brew install | `brew install ffmpeg` |
 | poppler-utils | apt | `sudo apt install poppler-utils` |
-| imagemagick | apt | `sudo apt install imagemagick` |
-| fd-find | apt | `sudo apt install fd-find` |
+| imagemagick | brew install | `brew install imagemagick` |
+| fd-find | brew install | `brew install fd` |
 | 7zip | apt | `sudo apt install 7zip` |
-| jq | apt | `sudo apt install jq` |
+| jq | brew install | `brew install jq` |
 | resvg | cargo install | `cargo install resvg` |
 | kimageformat-plugins | apt | `sudo apt install kimageformat-plugins` |
 | Neovim | brew install | `brew install neovim` |
-| fastfetch | apt | `sudo apt install fastfetch` |
+| fastfetch | brew install | `brew install fastfetch` |
 | Claude Code | native installer | `curl -fsSL https://claude.ai/install.sh \| bash` |
-| eza | apt | `sudo apt install eza` |
-| glow | apt | `sudo apt install glow` |
+| eza | brew install | `brew install eza` |
+| glow | brew install | `brew install glow` |
 
 ---
 
