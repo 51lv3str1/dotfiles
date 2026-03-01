@@ -282,6 +282,34 @@ Config lives in `~/.config/nvim/`.
 
 ---
 
+## 🔐 DankGreeter
+
+DankGreeter (`dms-greeter`) is a [greetd](https://github.com/kennylevinsen/greetd) greeter that follows the same aesthetics as the DMS lock screen.
+
+### Disable GDM3
+
+```bash
+sudo systemctl disable gdm3
+sudo systemctl stop gdm3
+```
+
+### Install
+
+```bash
+sudo apt install dms-greeter greetd
+```
+
+### Configure & Enable
+
+```bash
+dms greeter enable
+dms greeter sync
+```
+
+`dms greeter sync` syncs your user's wallpaper, theme, and settings with the greeter. Re-run after changing themes.
+
+---
+
 ## 🔄 Update Everything
 
 ```bash
