@@ -18,24 +18,29 @@ source $ZSH/oh-my-zsh.sh
 # ─── PATH ─────────────────────────────────────────────────────
 export MANPATH="/usr/local/man:$MANPATH"
 export PATH=$HOME/.local/bin:$PATH
-export PATH=$PATH:/usr/local/go/bin
-export PATH=$PATH:$HOME/go/bin
+export PATH=$PATH:/usr/local/bin
 export PATH=$HOME/.cargo/bin:$PATH
+
+# ─── XDG ──────────────────────────────────────────────────────
+export XDG_DATA_DIRS="$HOME/.local/share:/usr/local/share:/usr/share"
 
 # ─── OS-specific config ───────────────────────────────────────
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS
-  alias cat="bat"
-  alias clip="pbcopy"
 
   # Homebrew
   eval "$(/opt/homebrew/bin/brew shellenv)"
   export PKG_CONFIG_PATH="/opt/homebrew/opt/libxml2/lib/pkgconfig"
 
+  alias clip="pbcopy"
+
   alias update="brew update && brew upgrade && brew cleanup && cargo install-update -a"
 else
   # Linux
-  alias cat="batcat"
+
+  # Homebrew
+  eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
   alias clip="wl-copy"
   alias niriconfig="nvim ~/.config/niri/config.kdl"
 
@@ -51,6 +56,7 @@ alias zshconfig="nvim ~/.zshrc"
 alias ohmyzsh="nvim ~/.oh-my-zsh"
 alias starshipconfig="nvim ~/.config/starship.toml"
 alias alacrittyconfig="nvim ~/.config/alacritty/alacritty.toml"
+alias cat="bat"
 alias top="btop"
 alias grep="rg"
 alias cd="z"
