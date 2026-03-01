@@ -1,85 +1,89 @@
 # ─── .skhdrc ──────────────────────────────────────────────────
 # Porteado desde Niri config (Linux)
-# Mod (Super) → cmd en macOS
+# Mod → cmd + alt en macOS
 
 # ─── Application Launchers ────────────────────────────────────
+# Mod+A → Spotlight
+cmd + alt - a : osascript -e 'tell application "System Events" to keystroke space using command down'
+
 # Mod+T → Terminal
-cmd - t : open -a Alacritty
+cmd + alt - t : open -a Alacritty
 
 # Mod+B → Browser
-cmd - b : open -a "Google Chrome"
+cmd + alt - b : open -a "Google Chrome"
 
 # Mod+D → File Manager (yazi en Alacritty)
-cmd - d : open -a Alacritty; sleep 0.3; osascript -e 'tell app "System Events" to keystroke "yazi\n"'
+cmd + alt - d : open -a Alacritty; sleep 0.3; osascript -e 'tell application "System Events" to keystroke "yazi"' ; sleep 0.1; osascript -e 'tell application "System Events" to key code 36'
 
 # ─── Window Management ────────────────────────────────────────
 # Mod+Q → Cerrar ventana
-cmd - q : yabai -m window --close
+cmd + alt - q : yabai -m window --close
 
 # Mod+F → Maximizar (toggle zoom)
-cmd - f : yabai -m window --toggle zoom-fullscreen
+cmd + alt - f : yabai -m window --toggle zoom-fullscreen
 
 # Mod+Shift+F → Fullscreen nativo
-cmd + shift - f : yabai -m window --toggle native-fullscreen
+cmd + alt + shift - f : yabai -m window --toggle native-fullscreen
 
 # Mod+Shift+T → Toggle float
-cmd + shift - t : yabai -m window --toggle float
+cmd + alt + shift - t : yabai -m window --toggle float
 
 # ─── Focus Navigation (H J K L + Arrows) ─────────────────────
-cmd - h : yabai -m window --focus west
-cmd - j : yabai -m window --focus south
-cmd - k : yabai -m window --focus north
-cmd - l : yabai -m window --focus east
+cmd + alt - h : yabai -m window --focus west
+cmd + alt - j : yabai -m window --focus south
+cmd + alt - k : yabai -m window --focus north
+cmd + alt - l : yabai -m window --focus east
 
-cmd - left  : yabai -m window --focus west
-cmd - down  : yabai -m window --focus south
-cmd - up    : yabai -m window --focus north
-cmd - right : yabai -m window --focus east
+cmd + alt - left  : yabai -m window --focus west
+cmd + alt - down  : yabai -m window --focus south
+cmd + alt - up    : yabai -m window --focus north
+cmd + alt - right : yabai -m window --focus east
 
 # ─── Window Movement ──────────────────────────────────────────
-cmd + shift - h : yabai -m window --warp west
-cmd + shift - j : yabai -m window --warp south
-cmd + shift - k : yabai -m window --warp north
-cmd + shift - l : yabai -m window --warp east
+cmd + alt + shift - h : yabai -m window --warp west
+cmd + alt + shift - j : yabai -m window --warp south
+cmd + alt + shift - k : yabai -m window --warp north
+cmd + alt + shift - l : yabai -m window --warp east
 
-cmd + shift - left  : yabai -m window --warp west
-cmd + shift - down  : yabai -m window --warp south
-cmd + shift - up    : yabai -m window --warp north
-cmd + shift - right : yabai -m window --warp east
+cmd + alt + shift - left  : yabai -m window --warp west
+cmd + alt + shift - down  : yabai -m window --warp south
+cmd + alt + shift - up    : yabai -m window --warp north
+cmd + alt + shift - right : yabai -m window --warp east
 
-# ─── Resize de ventanas (Mod+Minus / Mod+Equal) ───────────────
-cmd - 0x1B : yabai -m window --resize right:-100:0    # Mod+Minus
-cmd - 0x18 : yabai -m window --resize right:100:0     # Mod+Equal
-cmd + shift - 0x1B : yabai -m window --resize bottom:0:-100
-cmd + shift - 0x18 : yabai -m window --resize bottom:0:100
+# ─── Resize de ventanas ───────────────────────────────────────
+cmd + alt - 0x1B : yabai -m window --resize right:-100:0    # Mod+Minus
+cmd + alt - 0x18 : yabai -m window --resize right:100:0     # Mod+Equal
+cmd + alt + shift - 0x1B : yabai -m window --resize bottom:0:-100
+cmd + alt + shift - 0x18 : yabai -m window --resize bottom:0:100
 
-# ─── Workspaces (Espacios en macOS) ───────────────────────────
+# ─── Workspaces ───────────────────────────────────────────────
 # Mod+1..9 → ir al espacio N
-cmd - 1 : yabai -m space --focus 1
-cmd - 2 : yabai -m space --focus 2
-cmd - 3 : yabai -m space --focus 3
-cmd - 4 : yabai -m space --focus 4
-cmd - 5 : yabai -m space --focus 5
-cmd - 6 : yabai -m space --focus 6
-cmd - 7 : yabai -m space --focus 7
-cmd - 8 : yabai -m space --focus 8
-cmd - 9 : yabai -m space --focus 9
+cmd + alt - 1 : yabai -m space --focus 1
+cmd + alt - 2 : yabai -m space --focus 2
+cmd + alt - 3 : yabai -m space --focus 3
+cmd + alt - 4 : yabai -m space --focus 4
+cmd + alt - 5 : yabai -m space --focus 5
+cmd + alt - 6 : yabai -m space --focus 6
+cmd + alt - 7 : yabai -m space --focus 7
+cmd + alt - 8 : yabai -m space --focus 8
+cmd + alt - 9 : yabai -m space --focus 9
 
 # Mod+Shift+1..9 → mover ventana al espacio N
-cmd + shift - 1 : yabai -m window --space 1
-cmd + shift - 2 : yabai -m window --space 2
-cmd + shift - 3 : yabai -m window --space 3
-cmd + shift - 4 : yabai -m window --space 4
-cmd + shift - 5 : yabai -m window --space 5
-cmd + shift - 6 : yabai -m window --space 6
-cmd + shift - 7 : yabai -m window --space 7
-cmd + shift - 8 : yabai -m window --space 8
-cmd + shift - 9 : yabai -m window --space 9
+cmd + alt + shift - 1 : yabai -m window --space 1
+cmd + alt + shift - 2 : yabai -m window --space 2
+cmd + alt + shift - 3 : yabai -m window --space 3
+cmd + alt + shift - 4 : yabai -m window --space 4
+cmd + alt + shift - 5 : yabai -m window --space 5
+cmd + alt + shift - 6 : yabai -m window --space 6
+cmd + alt + shift - 7 : yabai -m window --space 7
+cmd + alt + shift - 8 : yabai -m window --space 8
+cmd + alt + shift - 9 : yabai -m window --space 9
 
 # Mod+U / Mod+I → workspace anterior/siguiente
-cmd - u : yabai -m space --focus next
-cmd - i : yabai -m space --focus prev
+cmd + alt - u : yabai -m space --focus next
+cmd + alt - i : yabai -m space --focus prev
 
 # Mod+Ctrl+U / Mod+Ctrl+I → mover ventana al workspace anterior/siguiente
-cmd + ctrl - u : yabai -m window --space next
-cmd + ctrl - i : yabai -m window --space prev
+cmd + alt + ctrl - u : yabai -m window --space next
+cmd + alt + ctrl - i : yabai -m window --space prev
+

@@ -30,11 +30,13 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 
   # Homebrew
   eval "$(/opt/homebrew/bin/brew shellenv)"
+  alias update="brew update && brew upgrade && brew cleanup"
 else
   # Linux
   alias cat="batcat"
   alias clip="wl-copy"
   alias niriconfig="nvim ~/.config/niri/config.kdl"
+  alias update="sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y && sudo apt autoclean"
 fi
 
 # ─── Aliases comunes ──────────────────────────────────────────

@@ -1,5 +1,5 @@
 # ─── Layout ───────────────────────────────────────────────────
-yabai -m config layout float
+yabai -m config layout bsp
 
 # ─── Gaps (similar a Niri gaps 10) ───────────────────────────
 yabai -m config top_padding    10
