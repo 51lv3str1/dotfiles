@@ -159,6 +159,11 @@ sudo apt install gh
 | Claude Code | native installer | `curl -fsSL https://claude.ai/install.sh \| bash` |
 | eza | brew install | `brew install eza` |
 | glow | brew install | `brew install glow` |
+| AWS CLI | .deb from web | Download from [aws.amazon.com/cli](https://aws.amazon.com/cli/) |
+| bitwarden-cli | brew install | `brew install bitwarden-cli` |
+| Keybase | .deb from web | See below |
+| VSCode | apt (Microsoft repo) | See below |
+| swayimg | apt | `sudo apt install swayimg` |
 | khal | apt | `sudo apt install khal` |
 | fprintd | apt | `sudo apt install fprintd` |
 | greetd | apt | `sudo apt install greetd` |
@@ -166,12 +171,12 @@ sudo apt install gh
 
 ### Install all brew tools at once
 ```bash
-brew install go fzf bat btop ripgrep tmux lazygit lazydocker chafa ffmpeg imagemagick fd jq fastfetch eza glow neovim zoxide yazi resvg qtimageformats
+brew install go fzf bat btop ripgrep tmux lazygit lazydocker chafa ffmpeg imagemagick fd jq fastfetch eza glow neovim zoxide yazi resvg qtimageformats bitwarden-cli
 ```
 
 ### Install all apt extras at once
 ```bash
-sudo apt install wl-clipboard poppler-utils 7zip kimageformat-plugins khal fprintd
+sudo apt install wl-clipboard poppler-utils 7zip kimageformat-plugins khal fprintd swayimg
 ```
 
 ### Alacritty
@@ -196,6 +201,21 @@ StartupNotify=true
 Terminal=false
 EOF
 update-desktop-database ~/.local/share/applications/
+```
+
+### Keybase
+```bash
+curl --remote-name https://prerelease.keybase.io/keybase_amd64.deb
+sudo apt install ./keybase_amd64.deb
+run_keybase
+```
+
+### VSCode
+```bash
+curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | sudo tee /etc/apt/sources.list.d/vscode.list
+sudo apt update
+sudo apt install code
 ```
 
 ### eilmeldung (RSS reader)
@@ -326,3 +346,4 @@ sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y && brew upgrade
 - `XDG_DATA_DIRS` must include `$HOME/.local/share` for custom `.desktop` files to appear in app launchers. This is set in `~/.config/environment.d/xdg.conf`.
 - The DankLinux installer (`dankinstall`) adds the `danklinux` repo but **not** the `dms` repo — both must be added manually as shown above.
 - `bat` is installed via brew (not apt) so the binary is called `bat` directly, not `batcat`.
+- AWS CLI requires `systemd-resolved` for DNS resolution: `sudo apt install systemd-resolved`.

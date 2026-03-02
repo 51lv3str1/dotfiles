@@ -21,8 +21,6 @@ export PATH=$HOME/.local/bin:$PATH
 export PATH=$PATH:/usr/local/bin
 export PATH=$HOME/.cargo/bin:$PATH
 
-# ─── XDG ──────────────────────────────────────────────────────
-export XDG_DATA_DIRS="$HOME/.local/share:/usr/local/share:/usr/share"
 
 # ─── OS-specific config ───────────────────────────────────────
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -37,6 +35,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   alias update="brew update && brew upgrade && brew cleanup && cargo install-update -a"
 else
   # Linux
+
+  # XDG
+  export XDG_DATA_DIRS="$HOME/.local/share:/usr/local/share:/usr/share"
 
   # Homebrew
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
@@ -97,4 +98,10 @@ npm() { lazy_nvm; npm "$@"; }
 npx() { lazy_nvm; npx "$@"; }
 
 fpath+=${ZDOTDIR:-~}/.zsh_functions
+
+# ─── Bitwarden ────────────────────────────────────────────────
+bwls() { bw list items --search "$1" | jq ".[].name"; }
+bwu() { bw get username "$1" | clip; }
+bwp() { bw get password "$1" | clip; }
+
 
