@@ -1,7 +1,8 @@
 [opener]
 image = [
   { run = "swayimg %s", block = false, desc = "Open image in Swayimg" },
-  { run = "swayimg --gallery" , block = false, desc = "Open gallery in Swayimg" }
+  { run = "swayimg --gallery", block = false, desc = "Open gallery in Swayimg" },
+  { run = "open %s", block = false, desc = "Open image in Preview (macOS)" }
 ]
 
 edit = [
