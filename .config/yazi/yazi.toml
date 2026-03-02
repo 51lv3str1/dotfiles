@@ -10,7 +10,11 @@ edit = [
   { run = "code %s", block = false, desc = "Open in VS Code" },
   { run = """
     FILE=%s
-    DIR=$(dirname "$FILE")
+    if [ -d "$FILE" ]; then
+      DIR="$FILE"
+    else
+      DIR=$(dirname "$FILE")
+    fi
     NAME=$(basename "$FILE")
     SESSION="${NAME}-$$"
     tmux new-session -d -s "$SESSION" -c "$DIR" "sleep 0.3 && nvim '$FILE'"
