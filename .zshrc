@@ -21,7 +21,6 @@ export PATH=$HOME/.local/bin:$PATH
 export PATH=$PATH:/usr/local/bin
 export PATH=$HOME/.cargo/bin:$PATH
 
-
 # ─── OS-specific config ───────────────────────────────────────
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS
@@ -103,5 +102,4 @@ fpath+=${ZDOTDIR:-~}/.zsh_functions
 bwls() { bw list items --search "$1" | jq ".[].name"; }
 bwu() { bw get username "$1" | clip; }
 bwp() { bw get password "$1" | clip; }
-
 
