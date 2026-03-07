@@ -27,7 +27,10 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 
   # Homebrew
   eval "$(/opt/homebrew/bin/brew shellenv)"
+  export PATH="/opt/homebrew/opt/libxml2/bin:$PATH"
   export PKG_CONFIG_PATH="/opt/homebrew/opt/libxml2/lib/pkgconfig"
+  export LDFLAGS="-L/opt/homebrew/opt/libxml2/lib"
+  export CPPFLAGS="-I/opt/homebrew/opt/libxml2/include"
 
   alias clip="pbcopy"
 
