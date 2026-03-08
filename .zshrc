@@ -103,7 +103,97 @@ npx() { lazy_nvm; npx "$@"; }
 fpath+=${ZDOTDIR:-~}/.zsh_functions
 
 # ─── Bitwarden ────────────────────────────────────────────────
-bwls() { bw list items --search "$1" | jq ".[].name"; }
-bwu() { bw get username "$1" | clip; }
-bwp() { bw get password "$1" | clip; }
 
+# Unlock vault & persist session
+bwul() {
+  export BW_SESSION="$(bw unlock --raw)"
+  echo "🔓 Vault unlocked"
+}
+
+# Auto-unlock if session missing
+_bw_check() {
+  if [[ -z "$BW_SESSION" ]]; then
+    echo "⚠ Vault locked. Unlocking..." >&2
+    bwul
+  fi
+}
+
+# List items matching search
+bwls() {
+  _bw_check
+  bw list items --search "$1" | jq -r '.[].name'
+}
+
+# Get username → clipboard
+bwu() {
+  _bw_check
+  bw get username "$1" | clip && echo "📋 Username copied: $1"
+}
+
+# Get password → clipboard
+bwp() {
+  _bw_check
+  bw get password "$1" | clip && echo "📋 Password copied: $1"
+}
+
+# Get TOTP code → clipboard
+bwotp() {
+  _bw_check
+  bw get totp "$1" | clip && echo "📋 TOTP copied: $1"
+}
+
+# Get custom field value
+bwf() {
+  _bw_check
+  bw get item "$1" | jq -r '.fields[] | select(.name=="'"$2"'") | .value'
+}
+
+# Get custom field → clipboard
+bwfc() {
+  _bw_check
+  bw get item "$1" | jq -r '.fields[] | select(.name=="'"$2"'") | .value' | clip && echo "📋 Field '$2' copied: $1"
+}
+
+# Get notes → clipboard
+bwn() {
+  _bw_check
+  bw get notes "$1" | clip && echo "📋 Notes copied: $1"
+}
+
+# Show all fields for an item
+bwshow() {
+  _bw_check
+  bw get item "$1" | jq '{
+    name: .name,
+    username: .login.username,
+    uris: [.login.uris[]?.uri],
+    fields: .fields
+  }'
+}
+
+# List all custom field names for an item
+bwfields() {
+  _bw_check
+  bw get item "$1" | jq -r '.fields[]? | .name'
+}
+
+# Open item URI in browser (requires xdg-open / open / start)
+bwopen() {
+  _bw_check
+  local uri
+  uri=$(bw get item "$1" | jq -r '.login.uris[0].uri')
+  [[ -n "$uri" ]] && xdg-open "$uri" 2>/dev/null || open "$uri" 2>/dev/null || start "$uri"
+}
+
+# Lock vault
+bwl() {
+  bw lock
+  unset BW_SESSION
+  echo "🔒 Vault locked"
+}
+
+# Sync vault
+bwsync() {
+  _bw_check
+  bw sync && echo "🔄 Vault synced"
+}
