@@ -273,8 +273,8 @@ binds {
     Mod+B hotkey-overlay-title="Open Web Browser" { 
         spawn "google-chrome";
     }
-    Mod+D hotkey-overlay-title="Open File Manager" { 
-        spawn "alacritty" "-e" "yazi";
+    Mod+D hotkey-overlay-title="Open File Manager" {
+    spawn "alacritty" "-e" "zsh" "-c" "source ~/.zshrc && yazi";
     }
     Mod+A hotkey-overlay-title="Application Launcher" {
         spawn "dms" "ipc" "call" "spotlight" "toggle";
