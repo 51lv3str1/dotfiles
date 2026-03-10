@@ -383,7 +383,6 @@ function kdash() {
 }
 
 # ─── TMUX ────────────────────────────────────────────────────
-
 devopen() {
   local FILE="${1:-.}"
   local DIR
@@ -395,50 +394,52 @@ devopen() {
   fi
   local NAME=$(basename "${1:-.}")
   local SESSION="${NAME}-$(date +%s)"
-
   for cmd in nvim claude lazygit lazydocker fzf; do
     command -v "$cmd" &>/dev/null || { echo "devopen: missing dependency: $cmd"; return 1; }
   done
-
   # --- Layout ---
-  # ┌─────────────────────────┬──────────┐
-  # │                         │ [rbar] 1 │  right tab-bar (2 rows)
-  # │         nvim            ├──────────┤
-  # │         pane 0  75%     │ rcontent │  pane 2 (claude/lazygit/lazydocker)
-  # │                         │          │
-  # ├─────────────────────────┴──────────┤
-  # │ [bbar]               pane 3        │  bottom tab-bar (2 rows, full width)
-  # ├────────────────────────────────────┤
-  # │ bcontent             pane 4        │  bottom tab-content (full width)
-  # └────────────────────────────────────┘
-
+  # ┌─────────────────────┬──────────┐
+  # │                     │ [rbar] 3 │  right tab-bar (2 rows, full height)
+  # │       nvim          ├──────────┤
+  # │       pane 0        │ rcontent │  pane 4 (claude/lazygit/lazydocker, full height)
+  # │                     │          │
+  # ├─────────────────────┤          │
+  # │ [bbar]    pane 1    │          │  bottom tab-bar (nvim-width only)
+  # ├─────────────────────┤          │
+  # │ bcontent  pane 2    │          │  bottom tab-content (nvim-width only)
+  # └─────────────────────┴──────────┘
   tmux new-session -d -s "$SESSION" -c "$DIR" -x "$(tput cols)" -y "$(tput lines)"
 
-  # bottom strip full width 30%
-  tmux split-window -v -p 30 -t "$SESSION":0.0 -c "$DIR"
-  # right column 25% from pane 0
-  tmux select-pane -t "$SESSION":0.0
+  # Step 1: right column off pane 0, full height
+  # result: pane 0=left full, pane 1=right full
   tmux split-window -h -p 25 -t "$SESSION":0.0 -c "$DIR"
-  # split right column: tab-bar top + content
+
+  # Step 2: bottom strip off pane 0 (left/nvim column only)
+  # result: pane 0=nvim, pane 1=bottom-left, pane 2=right full
+  tmux select-pane -t "$SESSION":0.0
+  tmux split-window -v -p 30 -t "$SESSION":0.0 -c "$DIR"
+
+  # Step 3: split bbar off bottom-left pane 1
+  # result: pane 0=nvim, pane 1=bbar, pane 2=bcontent, pane 3=right full
   tmux select-pane -t "$SESSION":0.1
   tmux split-window -v -p 90 -t "$SESSION":0.1 -c "$DIR"
-  # split bottom strip: tab-bar top + content (full width, no lazydocker pane)
+
+  # Step 4: split rbar off right full pane 3
+  # result: pane 0=nvim, pane 1=bbar, pane 2=bcontent, pane 3=rbar, pane 4=rcontent
   tmux select-pane -t "$SESSION":0.3
   tmux split-window -v -p 90 -t "$SESSION":0.3 -c "$DIR"
 
   # Pane map:
   # 0 = nvim
-  # 1 = right tab-bar
-  # 2 = right tab-content (claude / lazygit / lazydocker)
-  # 3 = bottom tab-bar (full width)
-  # 4 = bottom tab-content (full width)
-
+  # 1 = bottom tab-bar      (nvim-width only)
+  # 2 = bottom tab-content  (nvim-width only)
+  # 3 = right tab-bar       (full height)
+  # 4 = right tab-content   (full height) <- claude/lazygit/lazydocker
   tmux send-keys -t "$SESSION":0.0 "nvim \"$FILE\"" Enter
-  tmux send-keys -t "$SESSION":0.2 "clear && claude" Enter
-  tmux send-keys -t "$SESSION":0.4 "clear && zsh" Enter
+  tmux send-keys -t "$SESSION":0.4 "clear && claude" Enter
+  tmux send-keys -t "$SESSION":0.2 "clear && zsh" Enter
 
   # --- Right shelf: window 1 ---
-  # inactive tabs: lazygit=0, lazydocker=1
   tmux new-window -t "$SESSION" -c "$DIR" -n "tabs-right"
   tmux split-window -h -t "$SESSION":1 -c "$DIR"
   tmux send-keys -t "$SESSION":1.0 "clear && lazygit" Enter
@@ -452,7 +453,7 @@ devopen() {
   tmux set-environment -t "$SESSION" DEVOPEN_BTAB 0
   tmux set-environment -t "$SESSION" DEVOPEN_BTAB_COUNT 1
 
-  # --- Right tab-bar renderer (pane 1) ---
+  # --- Right tab-bar renderer (pane 3) ---
   local RTAGTMP="/tmp/devopen-rtags-${SESSION}.sh"
   local RTABCACHE="/tmp/devopen-rtabs-${SESSION}.cache"
   cat > "$RTAGTMP" << RTAGEOF
@@ -472,7 +473,7 @@ while tmux has-session -t "\$SESSION" 2>/dev/null; do
   for i in \$(seq 0 \$(( COUNT - 1 ))); do
     NUM=\$(( i + 1 ))
     if [ "\$i" = "\$CUR" ]; then
-      CMD=\$(tmux display-message -p -t "\${SESSION}:0.2" "#{pane_current_command}" 2>/dev/null)
+      CMD=\$(tmux display-message -p -t "\${SESSION}:0.4" "#{pane_current_command}" 2>/dev/null)
       CMD=\$(echo "\$CMD" | cut -c1-8)
       LINE="\${LINE}\${A_TEXT}● \${NUM}:\${CMD}\${RESET}\${SEP}"
       CACHE="\${CACHE}\${i} * \${CMD}\n"
@@ -491,9 +492,9 @@ while tmux has-session -t "\$SESSION" 2>/dev/null; do
 done
 RTAGEOF
   chmod +x "$RTAGTMP"
-  tmux send-keys -t "$SESSION":0.1 "$RTAGTMP" Enter
+  tmux send-keys -t "$SESSION":0.3 "$RTAGTMP" Enter
 
-  # --- Bottom tab-bar renderer (pane 3) ---
+  # --- Bottom tab-bar renderer (pane 1) ---
   local BTAGTMP="/tmp/devopen-btags-${SESSION}.sh"
   local BTABCACHE="/tmp/devopen-btabs-${SESSION}.cache"
   cat > "$BTAGTMP" << BTAGEOF
@@ -513,7 +514,7 @@ while tmux has-session -t "\$SESSION" 2>/dev/null; do
   for i in \$(seq 0 \$(( COUNT - 1 ))); do
     NUM=\$(( i + 1 ))
     if [ "\$i" = "\$CUR" ]; then
-      CMD=\$(tmux display-message -p -t "\${SESSION}:0.4" "#{pane_current_command}" 2>/dev/null)
+      CMD=\$(tmux display-message -p -t "\${SESSION}:0.2" "#{pane_current_command}" 2>/dev/null)
       CMD=\$(echo "\$CMD" | cut -c1-8)
       LINE="\${LINE}\${A_TEXT}● \${NUM}:\${CMD}\${RESET}\${SEP}"
       CACHE="\${CACHE}\${i} * \${CMD}\n"
@@ -532,7 +533,7 @@ while tmux has-session -t "\$SESSION" 2>/dev/null; do
 done
 BTAGEOF
   chmod +x "$BTAGTMP"
-  tmux send-keys -t "$SESSION":0.3 "$BTAGTMP" Enter
+  tmux send-keys -t "$SESSION":0.1 "$BTAGTMP" Enter
 
   # --- Shared switch script ---
   local SWITCH_SCRIPT="/tmp/devopen-switch-${SESSION}.sh"
@@ -544,12 +545,12 @@ IDX="\$2"
 if [ "\$SYSTEM" = "right" ]; then
   ENV_TAB="DEVOPEN_RTAB"
   ENV_COUNT="DEVOPEN_RTAB_COUNT"
-  CONTENT_PANE="\${SESSION}:0.2"
+  CONTENT_PANE="\${SESSION}:0.4"
   SHELF_WIN="\${SESSION}:1"
 else
   ENV_TAB="DEVOPEN_BTAB"
   ENV_COUNT="DEVOPEN_BTAB_COUNT"
-  CONTENT_PANE="\${SESSION}:0.4"
+  CONTENT_PANE="\${SESSION}:0.2"
   SHELF_WIN="\${SESSION}:2"
 fi
 COUNT=\$(tmux show-environment -t "\$SESSION" "\$ENV_COUNT" | cut -d= -f2)
@@ -632,8 +633,8 @@ KILLEOF
     SESSION=\$(tmux display-message -p '#S')
     PANE=\$(tmux display-message -p '#{pane_index}')
     case \"\$PANE\" in
-      1|2) SYS=right;  ET=DEVOPEN_RTAB; EC=DEVOPEN_RTAB_COUNT ;;
-      3|4) SYS=bottom; ET=DEVOPEN_BTAB; EC=DEVOPEN_BTAB_COUNT ;;
+      3|4) SYS=right;  ET=DEVOPEN_RTAB; EC=DEVOPEN_RTAB_COUNT ;;
+      1|2) SYS=bottom; ET=DEVOPEN_BTAB; EC=DEVOPEN_BTAB_COUNT ;;
       *) exit 0 ;;
     esac
     COUNT=\$(tmux show-environment -t \$SESSION \$EC | cut -d= -f2)
@@ -647,8 +648,8 @@ KILLEOF
     SESSION=\$(tmux display-message -p '#S')
     PANE=\$(tmux display-message -p '#{pane_index}')
     case \"\$PANE\" in
-      1|2) EC=DEVOPEN_RTAB_COUNT; ET=DEVOPEN_RTAB; SYS=right;  CONTENT=\"\${SESSION}:0.2\"; SHELF=\"\${SESSION}:1\" ;;
-      3|4) EC=DEVOPEN_BTAB_COUNT; ET=DEVOPEN_BTAB; SYS=bottom; CONTENT=\"\${SESSION}:0.4\"; SHELF=\"\${SESSION}:2\" ;;
+      3|4) EC=DEVOPEN_RTAB_COUNT; ET=DEVOPEN_RTAB; SYS=right;  CONTENT=\"\${SESSION}:0.4\"; SHELF=\"\${SESSION}:1\" ;;
+      1|2) EC=DEVOPEN_BTAB_COUNT; ET=DEVOPEN_BTAB; SYS=bottom; CONTENT=\"\${SESSION}:0.2\"; SHELF=\"\${SESSION}:2\" ;;
       *) exit 0 ;;
     esac
     TMPFILE=\$(mktemp /tmp/devopen-cmd-XXXX)
@@ -671,8 +672,8 @@ KILLEOF
     SESSION=\$(tmux display-message -p '#S')
     PANE=\$(tmux display-message -p '#{pane_index}')
     case \"\$PANE\" in
-      1|2) ET=DEVOPEN_RTAB; EC=DEVOPEN_RTAB_COUNT; CONTENT=\"\${SESSION}:0.2\"; SHELF=\"\${SESSION}:1\" ;;
-      3|4) ET=DEVOPEN_BTAB; EC=DEVOPEN_BTAB_COUNT; CONTENT=\"\${SESSION}:0.4\"; SHELF=\"\${SESSION}:2\" ;;
+      3|4) ET=DEVOPEN_RTAB; EC=DEVOPEN_RTAB_COUNT; CONTENT=\"\${SESSION}:0.4\"; SHELF=\"\${SESSION}:1\" ;;
+      1|2) ET=DEVOPEN_BTAB; EC=DEVOPEN_BTAB_COUNT; CONTENT=\"\${SESSION}:0.2\"; SHELF=\"\${SESSION}:2\" ;;
       *) exit 0 ;;
     esac
     COUNT=\$(tmux show-environment -t \$SESSION \$EC | cut -d= -f2)
@@ -695,8 +696,8 @@ KILLEOF
     SESSION=\$(tmux display-message -p '#S')
     PANE=\$(tmux display-message -p '#{pane_index}')
     case \"\$PANE\" in
-      1|2) ET=DEVOPEN_RTAB; EC=DEVOPEN_RTAB_COUNT; CACHE='${RTABCACHE_}'; SYS=right ;;
-      3|4) ET=DEVOPEN_BTAB; EC=DEVOPEN_BTAB_COUNT; CACHE='${BTABCACHE_}'; SYS=bottom ;;
+      3|4) ET=DEVOPEN_RTAB; EC=DEVOPEN_RTAB_COUNT; CACHE='${RTABCACHE_}'; SYS=right ;;
+      1|2) ET=DEVOPEN_BTAB; EC=DEVOPEN_BTAB_COUNT; CACHE='${BTABCACHE_}'; SYS=bottom ;;
       *) exit 0 ;;
     esac
     TMPFILE=\$(mktemp /tmp/devopen-sel-XXXX)
@@ -712,8 +713,8 @@ KILLEOF
     SESSION=\$(tmux display-message -p '#S')
     PANE=\$(tmux display-message -p '#{pane_index}')
     case \"\$PANE\" in
-      1|2) ET=DEVOPEN_RTAB; EC=DEVOPEN_RTAB_COUNT; CACHE='${RTABCACHE_}'; CONTENT=\"\${SESSION}:0.2\"; SHELF=\"\${SESSION}:1\" ;;
-      3|4) ET=DEVOPEN_BTAB; EC=DEVOPEN_BTAB_COUNT; CACHE='${BTABCACHE_}'; CONTENT=\"\${SESSION}:0.4\"; SHELF=\"\${SESSION}:2\" ;;
+      3|4) ET=DEVOPEN_RTAB; EC=DEVOPEN_RTAB_COUNT; CACHE='${RTABCACHE_}'; CONTENT=\"\${SESSION}:0.4\"; SHELF=\"\${SESSION}:1\" ;;
+      1|2) ET=DEVOPEN_BTAB; EC=DEVOPEN_BTAB_COUNT; CACHE='${BTABCACHE_}'; CONTENT=\"\${SESSION}:0.2\"; SHELF=\"\${SESSION}:2\" ;;
       *) exit 0 ;;
     esac
     COUNT=\$(tmux show-environment -t \$SESSION \$EC | cut -d= -f2)
@@ -738,64 +739,61 @@ KILLEOF
     tmux bind-key -n "M-$i" run-shell "
       PANE=\$(tmux display-message -p '#{pane_index}')
       case \"\$PANE\" in
-        1|2) ${SWITCH} right ${IDX} ;;
-        3|4) ${SWITCH} bottom ${IDX} ;;
+        3|4) ${SWITCH} right ${IDX} ;;
+        1|2) ${SWITCH} bottom ${IDX} ;;
         *)   tmux send-keys 'M-$i' ;;
       esac
     "
   done
 
-  # --- h/← and l/→: only on tab-bar panes 1 and 3 ---
+  # --- h/← and l/→: only on tab-bar panes 3 and 1 ---
   tmux bind-key -n h run-shell "
     PANE=\$(tmux display-message -p '#{pane_index}')
     SESSION=\$(tmux display-message -p '#S')
     case \"\$PANE\" in
-      1) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB_COUNT | cut -d= -f2)
+      3) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB_COUNT | cut -d= -f2)
          CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB | cut -d= -f2)
          ${SWITCH} right \$(( (CUR - 1 + COUNT) % COUNT )) ;;
-      3) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB_COUNT | cut -d= -f2)
+      1) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB_COUNT | cut -d= -f2)
          CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB | cut -d= -f2)
          ${SWITCH} bottom \$(( (CUR - 1 + COUNT) % COUNT )) ;;
       *) tmux send-keys 'h' ;;
     esac
   "
-
   tmux bind-key -n l run-shell "
     PANE=\$(tmux display-message -p '#{pane_index}')
     SESSION=\$(tmux display-message -p '#S')
     case \"\$PANE\" in
-      1) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB_COUNT | cut -d= -f2)
+      3) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB_COUNT | cut -d= -f2)
          CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB | cut -d= -f2)
          ${SWITCH} right \$(( (CUR + 1) % COUNT )) ;;
-      3) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB_COUNT | cut -d= -f2)
+      1) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB_COUNT | cut -d= -f2)
          CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB | cut -d= -f2)
          ${SWITCH} bottom \$(( (CUR + 1) % COUNT )) ;;
       *) tmux send-keys 'l' ;;
     esac
   "
-
   tmux bind-key -n Left run-shell "
     PANE=\$(tmux display-message -p '#{pane_index}')
     SESSION=\$(tmux display-message -p '#S')
     case \"\$PANE\" in
-      1) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB_COUNT | cut -d= -f2)
+      3) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB_COUNT | cut -d= -f2)
          CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB | cut -d= -f2)
          ${SWITCH} right \$(( (CUR - 1 + COUNT) % COUNT )) ;;
-      3) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB_COUNT | cut -d= -f2)
+      1) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB_COUNT | cut -d= -f2)
          CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB | cut -d= -f2)
          ${SWITCH} bottom \$(( (CUR - 1 + COUNT) % COUNT )) ;;
       *) tmux send-keys 'Left' ;;
     esac
   "
-
   tmux bind-key -n Right run-shell "
     PANE=\$(tmux display-message -p '#{pane_index}')
     SESSION=\$(tmux display-message -p '#S')
     case \"\$PANE\" in
-      1) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB_COUNT | cut -d= -f2)
+      3) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB_COUNT | cut -d= -f2)
          CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB | cut -d= -f2)
          ${SWITCH} right \$(( (CUR + 1) % COUNT )) ;;
-      3) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB_COUNT | cut -d= -f2)
+      1) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB_COUNT | cut -d= -f2)
          CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB | cut -d= -f2)
          ${SWITCH} bottom \$(( (CUR + 1) % COUNT )) ;;
       *) tmux send-keys 'Right' ;;
@@ -805,22 +803,19 @@ KILLEOF
   tmux select-window -t "$SESSION:0"
   tmux select-pane -t "$SESSION":0.0
   (sleep 0.2 && \
-    tmux resize-pane -t "$SESSION":0.1 -y 2 && \
-    tmux resize-pane -t "$SESSION":0.3 -y 2) &
+    tmux resize-pane -t "$SESSION":0.3 -y 2 && \
+    tmux resize-pane -t "$SESSION":0.1 -y 2) &
   tmux attach -t "$SESSION"
 }
 
 devclose() {
   local SESSION
   SESSION=$(tmux display-message -p '#S' 2>/dev/null)
-
   if [ -z "$SESSION" ]; then
     echo "devclose: not inside a tmux session"
     return 1
   fi
-
   echo "devclose: closing session '$SESSION' and cleaning up..."
-
   rm -f \
     "/tmp/devopen-rtags-${SESSION}.sh" \
     "/tmp/devopen-btags-${SESSION}.sh" \
@@ -831,9 +826,7 @@ devclose() {
     "/tmp/devopen-kill-${SESSION}.sh" \
     "/tmp/devopen-switch-${SESSION}.sh" \
     "/tmp/devopen-detect-${SESSION}.sh"
-
   rm -f /tmp/devopen-cmd-* /tmp/devopen-sel-*
-
   tmux unbind-key -n h     2>/dev/null
   tmux unbind-key -n l     2>/dev/null
   tmux unbind-key -n Left  2>/dev/null
@@ -846,6 +839,5 @@ devclose() {
   tmux unbind-key -T prefix X 2>/dev/null
   tmux unbind-key -T prefix G 2>/dev/null
   tmux unbind-key -T prefix D 2>/dev/null
-
   tmux kill-session -t "$SESSION"
 }
