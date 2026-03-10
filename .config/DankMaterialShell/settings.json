@@ -427,14 +427,6 @@
         {
           "id": "workspaceSwitcher",
           "enabled": true
-        },
-        {
-          "id": "keyboard_layout_name",
-          "enabled": true
-        },
-        {
-          "id": "focusedWindow",
-          "enabled": true
         }
       ],
       "centerWidgets": [
