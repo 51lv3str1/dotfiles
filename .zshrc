@@ -414,19 +414,25 @@ devopen() {
   # --- Main layout ---
   tmux new-session -d -s "$SESSION" -c "$DIR" "sleep 0.3 && nvim \"$FILE\""
 
+
+  # Split bottom strip first (full width)
   tmux split-window -v -c "$DIR" -p 15
-  tmux select-pane -U
 
-  tmux split-window -h -c "$DIR" -p 15
-  tmux send-keys -t "$SESSION" 'clear && claude' C-m
-
-  tmux select-pane -D
+  # Split bottom strip: right column for lazygit
   tmux split-window -h -c "$DIR" -p 15
   tmux send-keys -t "$SESSION" 'clear && lazygit' C-m
+
+  # Split remaining bottom left: lazydocker + center
   tmux select-pane -L
   tmux split-window -h -c "$DIR" -p 85
   tmux select-pane -L
   tmux send-keys -t "$SESSION" 'clear && lazydocker' C-m
+
+  # Split top area: right column for claude, then resize to match lazygit exactly
+  tmux select-pane -U
+  tmux split-window -h -c "$DIR" -p 15
+  tmux send-keys -t "$SESSION" 'clear && claude' C-m
+
 
   # --- Tab shelf: window 1 ---
   local TABWIN="$SESSION:1"
@@ -633,5 +639,6 @@ KILLEOF
 
   tmux select-window -t "$SESSION:0"
   tmux select-pane -t "$SESSION:0.0"
+  (sleep 0.1 && tmux resize-pane -t "$SESSION:0.1" -x 42) &
   tmux attach -t "$SESSION"
 }
