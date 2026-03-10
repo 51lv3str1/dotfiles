@@ -72,6 +72,9 @@ alias tkss="tmux kill-session"
 alias tls="tmux ls"
 alias ta="tmux attach"
 alias rss="eilmeldung"
+alias cal_sync="vdirsyncer sync"
+
+alias toronja="devopen ~/GitHub/Allaria+/toronja"
 
 # ─── Shell tools ──────────────────────────────────────────────
 eval "$(starship init zsh)"
@@ -196,4 +199,216 @@ bwl() {
 bwsync() {
   _bw_check
   bw sync && echo "🔄 Vault synced"
+}
+
+# ─── kdash — terminal calendar dashboard ─────────────────────────────────────
+# Add this to your ~/.zshrc
+# Usage: kdash
+
+function kdash() {
+  local reset="\033[0m"
+  local bold="\033[1m"
+  local dim="\033[2m"
+  local italic="\033[3m"
+  local white="\033[97m"
+  local gray="\033[38;5;245m"
+  local accent="\033[38;5;116m"
+  local accent_bold="\033[1;38;5;116m"
+  local border="\033[38;5;238m"
+  local muted="\033[38;5;240m"
+
+  local now_int=$(date "+%H%M")
+  local today_num=$(date "+%-d")
+  local pad="  "
+
+  local color_google="\033[38;5;75m"
+  local color_familia="\033[38;5;213m"
+  local color_festivos="\033[38;5;120m"
+  local color_daruma="\033[38;5;215m"
+  local color_allaria="\033[38;5;159m"
+  local color_default="\033[97m"
+
+  local icon_google="󰊫"
+  local icon_familia="󰉌"
+  local icon_festivos="󰃦"
+  local icon_daruma="󰃯"
+  local icon_allaria="󰃯"
+  local icon_default="󰃯"
+
+  local cal_w=22
+  local right_w=38
+  local i=0
+
+  # ── build left panel: mini calendar ──────────────────────────────────────────
+  local -a left_lines
+  local lnum=0
+  while IFS= read -r line; do
+    if (( lnum == 0 )); then
+      local mh_len=${#line}
+      local mh_pad=$(( (cal_w - mh_len) / 2 ))
+      local mh_sp=""
+      i=0; while (( i < mh_pad )); do mh_sp+=" "; (( i++ )); done
+      left_lines+=("${mh_sp}${accent_bold}${line}${reset}")
+    elif (( lnum == 1 )); then
+      left_lines+=("${gray}${line}${reset}")
+    else
+      # manually highlight today_num as a word in the line
+      local before="" after="" found=0
+      local rest="$line"
+      local styled=""
+      while [[ -n "$rest" ]]; do
+        # try to match leading spaces + today_num as a number token
+        if [[ "$rest" =~ ^([[:space:]]*)([0-9]+)(.*) ]]; then
+          local spaces="${match[1]}"
+          local num="${match[2]}"
+          local tail="${match[3]}"
+          if [[ "$num" == "$today_num" ]]; then
+            styled+="${spaces}${reset}${bold}${accent}${num}${reset}${dim}"
+          else
+            styled+="${spaces}${num}"
+          fi
+          rest="$tail"
+        else
+          # non-numeric char, pass through
+          styled+="${rest[1]}"
+          rest="${rest:1}"
+        fi
+      done
+      left_lines+=("${dim}${styled}${reset}")
+    fi
+    (( lnum++ ))
+  done <<< "$(cal)"
+
+  # ── build right panel ─────────────────────────────────────────────────────────
+  local -a right_lines
+
+  local day_name=$(date "+%A")
+  local day_num=$(date "+%d")
+  local month_year=$(date "+%B %Y")
+  local time_now=$(date "+%H:%M")
+  local location="Buenos Aires"
+  right_lines+=("${muted}󰍎 ${reset}${dim}${location}${reset}  ${accent_bold}󰃭${reset}  ${bold}${white}${day_name}${reset}  ${muted}·${reset}  ${accent_bold}${day_num}${reset}  ${gray}${month_year}${reset}  ${muted}·${reset}  ${accent}${time_now}${reset}")
+
+  local rdiv=""
+  i=0; while (( i < right_w )); do rdiv+="─"; (( i++ )); done
+  right_lines+=("${border}${rdiv}${reset}")
+
+  # weather
+  local weather_cache="/tmp/kdash_weather"
+  if [[ ! -f "$weather_cache" ]] || (( $(date +%s) - $(date -r "$weather_cache" +%s 2>/dev/null || echo 0) > 1800 )); then
+    (curl -sf "wttr.in/Buenos+Aires?format=%c+%t+feels+%f+·+%h+hum+·+%w" > "$weather_cache" 2>/dev/null &)
+  fi
+
+  local weather=""
+  [[ -f "$weather_cache" ]] && weather=$(cat "$weather_cache")
+
+  if [[ -n "$weather" ]]; then
+    local w_icon w_temp w_feels w_hum w_wind
+    w_icon=$(echo "$weather" | grep -oP '^\S+')
+    w_temp=$(echo "$weather" | grep -oP '[+-]\d+°C' | head -1)
+    w_feels=$(echo "$weather" | grep -oP '[+-]\d+°C' | tail -1)
+    w_hum=$(echo "$weather" | grep -oP '\d+%')
+    w_wind=$(echo "$weather" | grep -oP '[↖↗↘↙←→↑↓]\d+km/h')
+    right_lines+=("")
+    right_lines+=("${white}${w_icon}${reset}  ${accent_bold}${w_temp}${reset}  ${dim}feels${reset} ${gray}${w_feels}${reset}  ${muted}·${reset}  ${accent}${w_hum}${reset} ${dim}hum${reset}  ${muted}·${reset}  ${gray}${w_wind}${reset}")
+    right_lines+=("")
+    right_lines+=("${border}${rdiv}${reset}")
+  fi
+
+  # events
+  local raw_events
+  raw_events=$(khal list today --format "{start-time}|{end-time}|{title}|{calendar}" 2>/dev/null)
+
+  if [[ -z "$raw_events" ]]; then
+    right_lines+=("")
+    right_lines+=("  ${muted}${italic}no events today${reset}")
+  else
+    local -A seen_events
+    while IFS='|' read -r start end title calendar; do
+      [[ "$start" =~ ^(Today|Tomorrow|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Lunes|Martes|Miercoles|Jueves|Viernes|Sabado|Domingo) ]] && continue
+      [[ -z "$title" ]] && continue
+      local event_key="${start}|${title}"
+      [[ -n "${seen_events[$event_key]}" ]] && continue
+      seen_events[$event_key]=1
+
+      local color="$color_default" icon="$icon_default"
+      case "$calendar" in
+        google)   color="$color_google";   icon="$icon_google"   ;;
+        familia)  color="$color_familia";  icon="$icon_familia"  ;;
+        festivos) color="$color_festivos"; icon="$icon_festivos" ;;
+        daruma)   color="$color_daruma";   icon="$icon_daruma"   ;;
+        allaria)  color="$color_allaria";  icon="$icon_allaria"  ;;
+      esac
+
+      local cal_label="${calendar:-?}"
+      local time_style="" title_style="$white"
+      local eline=""
+
+      if [[ -z "$start" ]]; then
+        eline=$(printf "${color}${icon}${reset}  ${gray}%-10s${reset}  ${dim}all day${reset}  ${bold}${white}%s${reset}" "$cal_label" "$title")
+      else
+        local start_int=${start//:/}
+        local end_int=2359
+        [[ -n "$end" ]] && end_int=${end//:/}
+        if (( start_int < now_int )); then
+          time_style="$dim"; title_style="$dim"
+        fi
+        if (( start_int <= now_int && now_int <= end_int )); then
+          time_style=""; title_style="$white"
+        fi
+        eline=$(printf "${color}${icon}${reset}  ${gray}%-10s${reset}  ${time_style}${color}${bold}%s${reset}${time_style} → %s${reset}  ${title_style}%s${reset}" "$cal_label" "$start" "$end" "$title")
+      fi
+      right_lines+=("$eline")
+    done <<< "$raw_events"
+  fi
+
+  # ── render side by side ───────────────────────────────────────────────────────
+  local total=$(( ${#left_lines[@]} > ${#right_lines[@]} ? ${#left_lines[@]} : ${#right_lines[@]} ))
+  local sep="  ${border}│${reset}  "
+
+  echo ""
+  for (( row=1; row<=total; row++ )); do
+    local left="${left_lines[$row]:-}"
+    local right="${right_lines[$row]:-}"
+    [[ -z "$left" && -z "$right" ]] && continue
+
+    local ln=$(printf '%b' "$left" | sed 's/\x1b\[[0-9;]*m//g' | tr -d '\n' | wc -m)
+    local lp=""
+    i=0; while (( i < cal_w - ln + 1 )); do lp+=" "; (( i++ )); done
+
+    echo -e "${pad}${left}${lp}${sep}${right}"
+  done
+
+  echo ""
+}
+
+# ─── TMUX ─────────────────────────────────────────────────────
+
+devopen() {
+  local FILE="${1:-.}"
+  local DIR
+  if [ -d "$FILE" ]; then
+    DIR="$FILE"
+  else
+    DIR=$(dirname "$FILE")
+  fi
+  local NAME=$(basename "$FILE")
+  local SESSION="${NAME}-$$"
+  tmux new-session -d -s "$SESSION" -c "$DIR" "sleep 0.3 && nvim '$FILE'"
+  tmux split-window -v -c "$DIR" -p 15
+  tmux select-pane -U
+  tmux split-window -h -c "$DIR" -p 15
+  #sleep 0.05
+  tmux send-keys -t "$SESSION" 'clear && claude' C-m
+  tmux select-pane -D
+  tmux split-window -h -c "$DIR" -p 15
+  #sleep 0.05
+  tmux send-keys -t "$SESSION" 'clear && lazygit' C-m
+  tmux select-pane -L
+  tmux split-window -h -c "$DIR" -p 85
+  tmux select-pane -L
+  #sleep 0.05
+  tmux send-keys -t "$SESSION" 'clear && lazydocker' C-m
+  tmux select-pane -t "$SESSION:0.0"
+  tmux attach -t "$SESSION"
 }
