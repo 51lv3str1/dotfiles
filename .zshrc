@@ -400,6 +400,8 @@ devopen() {
     command -v "$cmd" &>/dev/null || { echo "devopen: missing dependency: $cmd"; return 1; }
   done
 
+
+
   # --- Main layout ---
   # ┌─────────────────────────┬────────────┐
   # │         nvim            │   claude   │
@@ -725,4 +727,47 @@ SWITCHEOF
   tmux select-pane -t "$SESSION":0.0
   (sleep 0.1 && tmux resize-pane -t "$SESSION":0.3 -y 2) &
   tmux attach -t "$SESSION"
+}
+
+devclose() {
+  # --- Find current devopen session ---
+  local SESSION
+  SESSION=$(tmux display-message -p '#S' 2>/dev/null)
+
+  if [ -z "$SESSION" ]; then
+    echo "devclose: not inside a tmux session"
+    return 1
+  fi
+
+  # --- Confirm ---
+  echo "devclose: closing session '$SESSION' and cleaning up..."
+
+  # --- Kill tmp files for this session ---
+  rm -f \
+    "/tmp/devopen-tags-${SESSION}.sh" \
+    "/tmp/devopen-tabs-${SESSION}.cache" \
+    "/tmp/devopen-new-${SESSION}.sh" \
+    "/tmp/devopen-jump-${SESSION}.sh" \
+    "/tmp/devopen-kill-${SESSION}.sh" \
+    "/tmp/devopen-switch-${SESSION}.sh"
+
+  # --- Clean any leftover tmp cmd/sel files ---
+  rm -f /tmp/devopen-cmd-* /tmp/devopen-sel-*
+
+  # --- Unbind devopen-specific keys ---
+  tmux unbind-key -n h    2>/dev/null
+  tmux unbind-key -n l    2>/dev/null
+  tmux unbind-key -n Left  2>/dev/null
+  tmux unbind-key -n Right 2>/dev/null
+  for i in 1 2 3 4 5 6 7 8 9; do
+    tmux unbind-key -n "M-$i" 2>/dev/null
+  done
+  tmux unbind-key -T prefix T 2>/dev/null
+  tmux unbind-key -T prefix N 2>/dev/null
+  tmux unbind-key -T prefix X 2>/dev/null
+  tmux unbind-key -T prefix G 2>/dev/null
+  tmux unbind-key -T prefix D 2>/dev/null
+
+  # --- Kill the session ---
+  tmux kill-session -t "$SESSION"
 }
