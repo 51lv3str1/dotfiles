@@ -639,6 +639,6 @@ KILLEOF
 
   tmux select-window -t "$SESSION:0"
   tmux select-pane -t "$SESSION:0.0"
-  (sleep 0.1 && tmux resize-pane -t "$SESSION:0.1" -x 42) &
+  (sleep 0.02 && tmux resize-pane -t "$SESSION:0.1" -x 42) &
   tmux attach -t "$SESSION"
 }
