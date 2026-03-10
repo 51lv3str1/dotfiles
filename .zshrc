@@ -384,6 +384,18 @@ function kdash() {
 
 # ─── TMUX ─────────────────────────────────────────────────────
 
+# =============================================================================
+# devopen — tmux dev workspace launcher
+# =============================================================================
+# CHANGELOG
+# v2 (current) — Fix: prefix+G jump picker now shows pane_current_command
+#                instead of pane_title (which was showing hostname "Silver-Desktop")
+# v1 (original) — Initial version
+# =============================================================================
+# To revert to v1: replace #{pane_current_command} back to #{pane_title}
+#                  in the JUMP_SCRIPT heredoc (look for "# v1:" comment)
+# =============================================================================
+
 devopen() {
   local FILE="${1:-.}"
   local DIR
@@ -460,19 +472,18 @@ SESSION="${SESSION}"
 COUNT=\$(tmux show-environment -t "\$SESSION" DEVOPEN_TAB_COUNT | cut -d= -f2)
 CUR=\$(tmux show-environment -t "\$SESSION" DEVOPEN_TAB | cut -d= -f2)
 
-LIVE_CMD=\$(tmux show-environment -t "\$SESSION" DEVOPEN_LIVE_CMD | cut -d= -f2)
-
 TABLIST=""
 for i in \$(seq 0 \$(( COUNT - 1 ))); do
   if [ "\$i" = "\$CUR" ]; then
-    CMD="\$LIVE_CMD"
+    # Current tab is live at 0.3, not in the shelf — read it directly
+    PANE_NAME=\$(tmux display-message -p -t "\${SESSION}:0.3" "#{pane_current_command}" 2>/dev/null)
   else
-    CMD=\$(tmux display-message -p -t "\${SESSION}:1.\${i}" "#{pane_current_command}" 2>/dev/null)
+    # v2: pane_current_command (shows process name); v1 was: #{pane_title}
+    PANE_NAME=\$(tmux display-message -p -t "\${SESSION}:1.\${i}" "#{pane_current_command}" 2>/dev/null)
   fi
-  NUM=\$(( i + 1 ))
   MARKER=" "
   [ "\$i" = "\$CUR" ] && MARKER="*"
-  TABLIST="\${TABLIST}\${i} \${MARKER} \${NUM}:\${CMD}\n"
+  TABLIST="\${TABLIST}\${i} \${MARKER} \${PANE_NAME}\n"
 done
 
 SELECTED=\$(printf "\$TABLIST" | fzf \
@@ -499,9 +510,8 @@ CUR=\$(tmux show-environment -t "\$SESSION" DEVOPEN_TAB | cut -d= -f2)
 TABLIST=""
 for i in \$(seq 0 \$(( COUNT - 1 ))); do
   [ "\$i" = "\$CUR" ] && continue
-  CMD=\$(tmux display-message -p -t "\${SESSION}:1.\${i}" "#{pane_current_command}" 2>/dev/null)
-  NUM=\$(( i + 1 ))
-  TABLIST="\${TABLIST}\${i} \${NUM}:\${CMD}\n"
+  PANE_NAME=\$(tmux display-message -p -t "\${SESSION}:1.\${i}" "#{pane_title}" 2>/dev/null)
+  TABLIST="\${TABLIST}\${i} \${PANE_NAME}\n"
 done
 
 SELECTED=\$(printf "\$TABLIST" | fzf \
@@ -526,8 +536,8 @@ KILLEOF
     tmux swap-pane -s \"\$SESSION:0.3\" -t \"\$SESSION:1.\$NEXT\"
     tmux set-environment -t \$SESSION DEVOPEN_TAB \$NEXT
     tmux select-pane -t \"\$SESSION:0.3\"
-    CMD=\$(tmux display-message -p -t \"\$SESSION:0.3\" '#{pane_current_command}')
-    tmux display-message \"[\$(( NEXT + 1 ))/\$COUNT] \$(( NEXT + 1 )):\$CMD\"
+    PANE_NAME=\$(tmux display-message -p -t \"\$SESSION:0.3\" '#{pane_title}')
+    tmux display-message \"[\$(( NEXT + 1 ))/\$COUNT] \$PANE_NAME\"
   "
 
   # --- prefix+N: spawn new tab with command prompt ---
@@ -568,20 +578,16 @@ KILLEOF
     NEWCOUNT=\$(( COUNT - 1 ))
     tmux set-environment -t \$SESSION DEVOPEN_TAB_COUNT \$NEWCOUNT
     tmux select-pane -t \"\$SESSION:0.3\"
-    CMD=\$(tmux display-message -p -t \"\$SESSION:0.3\" '#{pane_current_command}')
-    tmux display-message \"[\$(( PREV + 1 ))/\$NEWCOUNT] \$(( PREV + 1 )):\$CMD\"
+    PANE_NAME=\$(tmux display-message -p -t \"\$SESSION:0.3\" '#{pane_title}')
+    tmux display-message \"[\$(( PREV + 1 ))/\$NEWCOUNT] \$PANE_NAME\"
   "
 
   # --- prefix+G: fzf jump to tab (popup) ---
-  # The visible pane lives at 0.3, not on the shelf, so the script
-  # can't see it. We store its current command in the session env
-  # so the jump script can include it in the list.
   local JUMP="${JUMP_SCRIPT}"
   tmux bind-key -T prefix G run-shell "
     SESSION=\$(tmux display-message -p '#S')
     CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_TAB | cut -d= -f2)
-    LIVE_CMD=\$(tmux display-message -p -t \"\$SESSION:0.3\" '#{pane_current_command}')
-    tmux set-environment -t \$SESSION DEVOPEN_LIVE_CMD \"\$LIVE_CMD\"
+
     TMPFILE=\$(mktemp /tmp/devopen-sel-XXXX)
     tmux popup -E -w 40 -h 15 \"TMPFILE=\$TMPFILE ${JUMP}\"
     SELECTED=\$(sed -n '1p' \$TMPFILE)
@@ -606,6 +612,7 @@ KILLEOF
       tmux display-message 'Cannot close last tab'
       exit 0
     fi
+
     TMPFILE=\$(mktemp /tmp/devopen-sel-XXXX)
     tmux popup -E -w 40 -h 15 \"TMPFILE=\$TMPFILE ${KILL}\"
     SELECTED=\$(sed -n '1p' \$TMPFILE)
