@@ -382,60 +382,273 @@ function kdash() {
   echo ""
 }
 
-# ─── TMUX ─────────────────────────────────────────────────────
-# Layout:
-# ┌─────────────────────────┬────────────┐
-# │                         │            │
-# │         nvim            │   claude   │
-# │         pane 0          │   pane 1   │
-# │          75%            │    25%     │
-# ├─────────┬───────────────┼────────────┤
-# │         │   tab-tags    │            │
-# │  lazy   │   pane 3 10%  │  lazygit   │
-# │ docker  ├───────────────┤   pane 5   │
-# │ pane 2  │  tab-content  │    25%     │
-# │   25%   │   pane 4 90%  │            │
-# └─────────┴───────────────┴────────────┘
+# ─── TMUX ────────────────────────────────────────────────────
+
 devopen() {
-  local session_name="${1:-dev}"
-  local dir="${2:-$PWD}"
-
-  if [[ -n "$TMUX" ]]; then
-    tmux split-window -v -p 25
-    tmux select-pane -t 0
-    tmux split-window -h -p 25
-    tmux select-pane -t 2
-    tmux split-window -h -p 25
-    tmux select-pane -t 2
-    tmux split-window -h -p 64
-    tmux resize-pane -t 2 -x 42
-    tmux select-pane -t 3
-    tmux split-window -v -p 90
-    # launch tools
-    tmux send-keys -t 0 "nvim" Enter
-    tmux send-keys -t 1 "claude" Enter
-    tmux send-keys -t 2 "lazydocker" Enter
-    tmux send-keys -t 4 "lazygit" Enter
-    tmux select-pane -t 0
-    return
+  local FILE="${1:-.}"
+  local DIR
+  if [ -d "$FILE" ]; then
+    DIR=$(realpath "$FILE")
+    FILE="."
+  else
+    DIR=$(realpath "$(dirname "$FILE")")
   fi
+  local NAME=$(basename "${1:-.}")
+  local SESSION="${NAME}-$(date +%s)"
 
-  tmux new-session -d -s "$session_name" -c "$dir" -x "$(tput cols)" -y "$(tput lines)"
-  tmux split-window -v -p 25 -t "$session_name"
-  tmux select-pane -t "$session_name":0.0
-  tmux split-window -h -p 25 -t "$session_name"
-  tmux select-pane -t "$session_name":0.2
-  tmux split-window -h -p 25 -t "$session_name"
-  tmux select-pane -t "$session_name":0.2
-  tmux split-window -h -p 64 -t "$session_name"
-  tmux resize-pane -t "$session_name":0.2 -x 42
-  tmux select-pane -t "$session_name":0.3
-  tmux split-window -v -p 90 -t "$session_name"
-  # launch tools
-  tmux send-keys -t "$session_name":0.0 "nvim" Enter
-  tmux send-keys -t "$session_name":0.1 "claude" Enter
-  tmux send-keys -t "$session_name":0.2 "lazydocker" Enter
-  tmux send-keys -t "$session_name":0.5 "lazygit" Enter
-  tmux select-pane -t "$session_name":0.0
-  tmux attach-session -t "$session_name"
+  for cmd in nvim claude lazygit lazydocker gh fzf; do
+    command -v "$cmd" &>/dev/null || { echo "devopen: missing dependency: $cmd"; return 1; }
+  done
+
+  # --- Main layout ---
+  # ┌─────────────────────────┬────────────┐
+  # │         nvim            │   claude   │
+  # │         pane 0          │   pane 1   │
+  # │          75%            │    25%     │
+  # ├─────────┬───────────────┼────────────┤
+  # │  lazy   │ tab-tags pane3│  lazygit   │
+  # │ docker  ├───────────────┤   pane 5   │
+  # │ pane 2  │  tab-content  │    30%     │
+  # │   25%   │   pane 4      │            │
+  # └─────────┴───────────────┴────────────┘
+
+  tmux new-session -d -s "$SESSION" -c "$DIR" -x "$(tput cols)" -y "$(tput lines)"
+
+  tmux split-window -v -p 30 -t "$SESSION" -c "$DIR"
+  tmux select-pane -t "$SESSION":0.0
+  tmux split-window -h -p 25 -t "$SESSION" -c "$DIR"
+  tmux select-pane -t "$SESSION":0.2
+  tmux split-window -h -p 25 -t "$SESSION" -c "$DIR"
+  tmux select-pane -t "$SESSION":0.2
+  tmux split-window -h -p 64 -t "$SESSION" -c "$DIR"
+  tmux resize-pane -t "$SESSION":0.2 -x 42
+  tmux select-pane -t "$SESSION":0.3
+  tmux split-window -v -t "$SESSION" -c "$DIR"
+
+  tmux send-keys -t "$SESSION":0.0 "nvim \"$FILE\"" Enter
+  tmux send-keys -t "$SESSION":0.1 "clear && claude" Enter
+  tmux send-keys -t "$SESSION":0.2 "clear && lazydocker" Enter
+  tmux send-keys -t "$SESSION":0.5 "clear && lazygit" Enter
+
+  # --- Tab shelf: window 1 ---
+  local TABWIN="$SESSION:1"
+  tmux new-window -t "$SESSION" -c "$DIR" -n "tabs"
+  tmux send-keys -t "$TABWIN.0" 'clear' Enter
+  tmux set-environment -t "$SESSION" DEVOPEN_TAB 0
+  tmux set-environment -t "$SESSION" DEVOPEN_TAB_COUNT 1
+
+  # --- Tab-tags renderer in pane 0.3 ---
+  local TAGTMP="/tmp/devopen-tags-${SESSION}.sh"
+  cat > "$TAGTMP" << TAGEOF
+#!/bin/sh
+SESSION="${SESSION}"
+while tmux has-session -t "\$SESSION" 2>/dev/null; do
+  COUNT=\$(tmux show-environment -t "\$SESSION" DEVOPEN_TAB_COUNT 2>/dev/null | cut -d= -f2)
+  CUR=\$(tmux show-environment -t "\$SESSION" DEVOPEN_TAB 2>/dev/null | cut -d= -f2)
+  [ -z "\$COUNT" ] && sleep 1 && continue
+  LINE=""
+  for i in \$(seq 0 \$(( COUNT - 1 ))); do
+    if [ "\$i" = "\$CUR" ]; then
+      CMD=\$(tmux display-message -p -t "\${SESSION}:0.4" "#{pane_current_command}" 2>/dev/null)
+      LINE="\${LINE}[\$(( i + 1 )):\${CMD} *] "
+    else
+      CMD=\$(tmux display-message -p -t "\${SESSION}:1.\${i}" "#{pane_current_command}" 2>/dev/null)
+      LINE="\${LINE}[\$(( i + 1 )):\${CMD}] "
+    fi
+  done
+  clear
+  printf "%s\n" "\$LINE"
+  sleep 1
+done
+TAGEOF
+  chmod +x "$TAGTMP"
+  tmux send-keys -t "$SESSION":0.3 "$TAGTMP" Enter
+
+  # --- Auto-rename shelf panes every second ---
+  tmux set-option -t "$SESSION" status-interval 1
+  tmux run-shell -t "$SESSION" "
+    while tmux has-session -t '$SESSION' 2>/dev/null; do
+      COUNT=\$(tmux show-environment -t '$SESSION' DEVOPEN_TAB_COUNT 2>/dev/null | cut -d= -f2)
+      [ -z \"\$COUNT\" ] && sleep 1 && continue
+      for i in \$(seq 0 \$(( COUNT - 1 ))); do
+        CMD=\$(tmux display-message -p -t '${SESSION}:1.'\$i '#{pane_current_command}' 2>/dev/null)
+        [ -z \"\$CMD\" ] && continue
+        NUM=\$(( i + 1 ))
+        tmux rename-pane -t '${SESSION}:1.'\$i \"\${NUM}:\${CMD}\" 2>/dev/null
+      done
+      sleep 1
+    done
+  " &
+
+  # --- Write new-tab prompt script for prefix+N ---
+  local NEW_SCRIPT="/tmp/devopen-new-${SESSION}.sh"
+  cat > "$NEW_SCRIPT" << NEWEOF
+#!/bin/sh
+printf "command > "
+read -r CMD
+printf "%s\n" "\$CMD" > "\$TMPFILE"
+NEWEOF
+  chmod +x "$NEW_SCRIPT"
+
+  # --- Write jump script for prefix+G ---
+  local JUMP_SCRIPT="/tmp/devopen-jump-${SESSION}.sh"
+  cat > "$JUMP_SCRIPT" << JUMPEOF
+#!/bin/sh
+SESSION="${SESSION}"
+COUNT=\$(tmux show-environment -t "\$SESSION" DEVOPEN_TAB_COUNT | cut -d= -f2)
+CUR=\$(tmux show-environment -t "\$SESSION" DEVOPEN_TAB | cut -d= -f2)
+TABLIST=""
+for i in \$(seq 0 \$(( COUNT - 1 ))); do
+  if [ "\$i" = "\$CUR" ]; then
+    PANE_NAME=\$(tmux display-message -p -t "\${SESSION}:0.4" "#{pane_current_command}" 2>/dev/null)
+  else
+    PANE_NAME=\$(tmux display-message -p -t "\${SESSION}:1.\${i}" "#{pane_current_command}" 2>/dev/null)
+  fi
+  MARKER=" "
+  [ "\$i" = "\$CUR" ] && MARKER="*"
+  TABLIST="\${TABLIST}\${i} \${MARKER} \${PANE_NAME}\n"
+done
+SELECTED=\$(printf "\$TABLIST" | fzf \
+  --prompt="jump > " \
+  --height=100% \
+  --layout=reverse \
+  --border=none \
+  --color="prompt:#89b4fa,pointer:#f38ba8,bg:#1e1e2e,bg+:#313244,fg+:#a6e3a1" \
+  --preview-window=hidden \
+  | awk '{print \$1}')
+printf "%s\n%s\n%s\n" "\$SELECTED" "\$CUR" "\$COUNT" > "\$TMPFILE"
+JUMPEOF
+  chmod +x "$JUMP_SCRIPT"
+
+  # --- Write kill script for prefix+D ---
+  local KILL_SCRIPT="/tmp/devopen-kill-${SESSION}.sh"
+  cat > "$KILL_SCRIPT" << KILLEOF
+#!/bin/sh
+SESSION="${SESSION}"
+COUNT=\$(tmux show-environment -t "\$SESSION" DEVOPEN_TAB_COUNT | cut -d= -f2)
+CUR=\$(tmux show-environment -t "\$SESSION" DEVOPEN_TAB | cut -d= -f2)
+TABLIST=""
+for i in \$(seq 0 \$(( COUNT - 1 ))); do
+  [ "\$i" = "\$CUR" ] && continue
+  PANE_NAME=\$(tmux display-message -p -t "\${SESSION}:1.\${i}" "#{pane_title}" 2>/dev/null)
+  TABLIST="\${TABLIST}\${i} \${PANE_NAME}\n"
+done
+SELECTED=\$(printf "\$TABLIST" | fzf \
+  --prompt="kill > " \
+  --height=100% \
+  --layout=reverse \
+  --border=none \
+  --color="prompt:#f38ba8,pointer:#f38ba8,bg:#1e1e2e,bg+:#313244,fg+:#f38ba8" \
+  --preview-window=hidden \
+  | awk '{print \$1}')
+printf "%s\n%s\n%s\n" "\$SELECTED" "\$CUR" "\$COUNT" > "\$TMPFILE"
+KILLEOF
+  chmod +x "$KILL_SCRIPT"
+
+  # --- prefix+T: cycle to next tab ---
+  tmux bind-key -T prefix T run-shell "
+    SESSION=\$(tmux display-message -p '#S')
+    COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_TAB_COUNT | cut -d= -f2)
+    CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_TAB | cut -d= -f2)
+    NEXT=\$(( (CUR + 1) % COUNT ))
+    tmux swap-pane -s \"\$SESSION:0.4\" -t \"\$SESSION:1.\$NEXT\"
+    tmux set-environment -t \$SESSION DEVOPEN_TAB \$NEXT
+    tmux select-pane -t \"\$SESSION:0.4\"
+    PANE_NAME=\$(tmux display-message -p -t \"\$SESSION:0.4\" '#{pane_title}')
+    tmux display-message \"[\$(( NEXT + 1 ))/\$COUNT] \$PANE_NAME\"
+  "
+
+  # --- prefix+N: spawn new tab with command prompt ---
+  local NEW="${NEW_SCRIPT}"
+  tmux bind-key -T prefix N run-shell "
+    TMPFILE=\$(mktemp /tmp/devopen-cmd-XXXX)
+    tmux popup -E -w 40 -h 3 \"TMPFILE=\$TMPFILE ${NEW}\"
+    CMD=\$(cat \$TMPFILE)
+    rm -f \$TMPFILE
+    SESSION=\$(tmux display-message -p '#S')
+    COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_TAB_COUNT | cut -d= -f2)
+    DIR=\$(tmux display-message -p -t \"\$SESSION:0.4\" '#{pane_current_path}')
+    tmux split-window -t \"\$SESSION:1\" -h -c \"\$DIR\"
+    NEWPANE=\$COUNT
+    NEWNUM=\$(( NEWPANE + 1 ))
+    NEWCOUNT=\$(( COUNT + 1 ))
+    tmux set-environment -t \$SESSION DEVOPEN_TAB_COUNT \$NEWCOUNT
+    tmux swap-pane -s \"\$SESSION:0.4\" -t \"\$SESSION:1.\$NEWPANE\"
+    tmux set-environment -t \$SESSION DEVOPEN_TAB \$NEWPANE
+    tmux select-pane -t \"\$SESSION:0.4\"
+    [ -n \"\$CMD\" ] && tmux send-keys -t \"\$SESSION:0.4\" \"\$CMD\" C-m
+    tmux display-message \"[\${NEWNUM}/\$NEWCOUNT] \${NEWNUM}:zsh\"
+  "
+
+  # --- prefix+X: kill current tab, cycle to previous ---
+  tmux bind-key -T prefix X run-shell "
+    SESSION=\$(tmux display-message -p '#S')
+    COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_TAB_COUNT | cut -d= -f2)
+    CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_TAB | cut -d= -f2)
+    if [ \$COUNT -le 1 ]; then
+      tmux display-message 'Cannot close last tab'
+      exit 0
+    fi
+    PREV=\$(( (CUR - 1 + COUNT) % COUNT ))
+    tmux swap-pane -s \"\$SESSION:0.4\" -t \"\$SESSION:1.\$PREV\"
+    tmux set-environment -t \$SESSION DEVOPEN_TAB \$PREV
+    tmux kill-pane -t \"\$SESSION:1.\$CUR\"
+    NEWCOUNT=\$(( COUNT - 1 ))
+    tmux set-environment -t \$SESSION DEVOPEN_TAB_COUNT \$NEWCOUNT
+    tmux select-pane -t \"\$SESSION:0.4\"
+    PANE_NAME=\$(tmux display-message -p -t \"\$SESSION:0.4\" '#{pane_title}')
+    tmux display-message \"[\$(( PREV + 1 ))/\$NEWCOUNT] \$PANE_NAME\"
+  "
+
+  # --- prefix+G: fzf jump to tab (popup) ---
+  local JUMP="${JUMP_SCRIPT}"
+  tmux bind-key -T prefix G run-shell "
+    SESSION=\$(tmux display-message -p '#S')
+    CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_TAB | cut -d= -f2)
+    TMPFILE=\$(mktemp /tmp/devopen-sel-XXXX)
+    tmux popup -E -w 40 -h 15 \"TMPFILE=\$TMPFILE ${JUMP}\"
+    SELECTED=\$(sed -n '1p' \$TMPFILE)
+    CUR=\$(sed -n '2p' \$TMPFILE)
+    COUNT=\$(sed -n '3p' \$TMPFILE)
+    rm -f \$TMPFILE
+    [ -z \"\$SELECTED\" ] && exit 0
+    [ \"\$SELECTED\" = \"\$CUR\" ] && tmux display-message 'Already on that tab' && exit 0
+    tmux swap-pane -s \"\$SESSION:0.4\" -t \"\$SESSION:1.\$SELECTED\"
+    tmux set-environment -t \$SESSION DEVOPEN_TAB \$SELECTED
+    tmux select-pane -t \"\$SESSION:0.4\"
+    CMD=\$(tmux display-message -p -t \"\$SESSION:0.4\" '#{pane_current_command}')
+    tmux display-message \"[\$(( SELECTED + 1 ))/\$COUNT] \$(( SELECTED + 1 )):\$CMD\"
+  "
+
+  # --- prefix+D: fzf kill tab (popup) ---
+  local KILL="${KILL_SCRIPT}"
+  tmux bind-key -T prefix D run-shell "
+    SESSION=\$(tmux display-message -p '#S')
+    COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_TAB_COUNT | cut -d= -f2)
+    if [ \$COUNT -le 1 ]; then
+      tmux display-message 'Cannot close last tab'
+      exit 0
+    fi
+    TMPFILE=\$(mktemp /tmp/devopen-sel-XXXX)
+    tmux popup -E -w 40 -h 15 \"TMPFILE=\$TMPFILE ${KILL}\"
+    SELECTED=\$(sed -n '1p' \$TMPFILE)
+    CUR=\$(sed -n '2p' \$TMPFILE)
+    COUNT=\$(sed -n '3p' \$TMPFILE)
+    rm -f \$TMPFILE
+    [ -z \"\$SELECTED\" ] && exit 0
+    KILLED_CMD=\$(tmux display-message -p -t \"\$SESSION:1.\$SELECTED\" '#{pane_current_command}' 2>/dev/null)
+    KILLED_NUM=\$(( SELECTED + 1 ))
+    tmux kill-pane -t \"\$SESSION:1.\$SELECTED\"
+    NEWCOUNT=\$(( COUNT - 1 ))
+    tmux set-environment -t \$SESSION DEVOPEN_TAB_COUNT \$NEWCOUNT
+    NEWCUR=\$CUR
+    [ \"\$SELECTED\" -lt \"\$CUR\" ] && NEWCUR=\$(( CUR - 1 ))
+    tmux set-environment -t \$SESSION DEVOPEN_TAB \$NEWCUR
+    tmux display-message \"Killed: \${KILLED_NUM}:\${KILLED_CMD} [\$NEWCOUNT tabs left]\"
+  "
+
+  tmux select-window -t "$SESSION:0"
+  tmux select-pane -t "$SESSION":0.0
+  (sleep 0.1 && tmux resize-pane -t "$SESSION":0.3 -y 2) &
+  tmux attach -t "$SESSION"
 }
