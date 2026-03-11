@@ -188,19 +188,6 @@ bwopen() {
   [[ -n "$uri" ]] && xdg-open "$uri" 2>/dev/null || open "$uri" 2>/dev/null || start "$uri"
 }
 
-# Lock vault
-bwl() {
-  bw lock
-  unset BW_SESSION
-  echo "🔒 Vault locked"
-}
-
-# Sync vault
-bwsync() {
-  _bw_check
-  bw sync && echo "🔄 Vault synced"
-}
-
 # =============================================================================
 # now — compact event dashboard (today's calendar events via khal)
 # =============================================================================
@@ -226,7 +213,6 @@ now() {
   local muted="${ESC}[38;5;240m"
   local white="${ESC}[97m"
 
-  # Calendar-specific colors and icons
   local -A cal_color=(
     [google]="${ESC}[38;5;75m"
     [familia]="${ESC}[38;5;213m"
@@ -246,7 +232,6 @@ now() {
 
   local now_int=$(date "+%H%M")
 
-  # Events from khal
   local raw_events
   raw_events=$(khal list today --format "{start-time}|{end-time}|{title}|{calendar}" 2>/dev/null)
 
@@ -258,7 +243,6 @@ now() {
   local -A seen
   local printed=0
   while IFS='|' read -r start end title calendar; do
-    # Skip header lines khal emits (day names)
     [[ "$start" =~ ^(Today|Tomorrow|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Lun|Mar|Mie|Jue|Vie|Sab|Dom) ]] && continue
     [[ -z "$title" ]] && continue
     local key="${start}|${title}"
@@ -270,7 +254,6 @@ now() {
     local cal_label="${calendar:-?}"
 
     if [[ -z "$start" ]]; then
-      # All-day event
       printf " %s%s${reset} ${gray}%s${reset} ${dim}all day${reset} ${bold}${white}%s${reset}\n" \
         "$color" "$icon" "$cal_label" "$title"
     else
@@ -278,7 +261,6 @@ now() {
       local end_int=${end//:/}
       local time_style="" title_style="$white"
 
-      # Dim past events; full brightness for ongoing ones
       if (( start_int < now_int )); then
         time_style="$dim"; title_style="$dim"
       fi
@@ -398,36 +380,18 @@ devopen() {
   # Temp file paths — all namespaced by SESSION to support concurrent workspaces
   # ---------------------------------------------------------------------------
   local TMP="/tmp/devopen-${SESSION}"
-  local RBAR_SCRIPT="${TMP}-rbar.sh"       # right tab-bar renderer
-  local BBAR_SCRIPT="${TMP}-bbar.sh"       # bottom tab-bar renderer
-  local DBAR_SCRIPT="${TMP}-dbar.sh"       # dash bar renderer (static label)
-  local RCACHE="${TMP}-rtabs.cache"        # right tab fzf cache
-  local BCACHE="${TMP}-btabs.cache"        # bottom tab fzf cache
-  local SWITCH_SCRIPT="${TMP}-switch.sh"   # tab switch logic
-  local NEW_SCRIPT="${TMP}-new.sh"         # new tab prompt
-  local JUMP_SCRIPT="${TMP}-jump.sh"       # fzf jump picker
-  local KILL_SCRIPT="${TMP}-kill.sh"       # fzf kill picker
+  local RBAR_SCRIPT="${TMP}-rbar.sh"
+  local BBAR_SCRIPT="${TMP}-bbar.sh"
+  local DBAR_SCRIPT="${TMP}-dbar.sh"
+  local RCACHE="${TMP}-rtabs.cache"
+  local BCACHE="${TMP}-btabs.cache"
+  local SWITCH_SCRIPT="${TMP}-switch.sh"
+  local NEW_SCRIPT="${TMP}-new.sh"
+  local JUMP_SCRIPT="${TMP}-jump.sh"
+  local KILL_SCRIPT="${TMP}-kill.sh"
 
   # ---------------------------------------------------------------------------
-  # Build layout — splits must be done in strict top-left→bottom-right order
-  # so tmux pane numbering remains predictable (renumbers by screen position).
-  #
-  # Target (pane indices after all splits):
-  #   0 = nvim        (left, tall)
-  #   1 = bbar        (bottom-left, 2 rows)
-  #   2 = bcont       (bottom-left content)
-  #   3 = rbar        (top-right, 2 rows)
-  #   4 = rcont       (top-right content)
-  #   5 = dbar        (bottom-right, 2 rows)
-  #   6 = dcont       (bottom-right content — now dashboard)
-  #
-  # Split sequence:
-  #   s1: pane 0 → right column full height     (0=left, 1=right)
-  #   s2: pane 0 → bottom-left strip            (0=nvim, 1=bot-left, 2=right)
-  #   s3: pane 1 → bbar + bcont                 (1=bbar, 2=bcont, 3=right)
-  #   s4: pane 3 → top-right + bottom-right     (3=top-right, 4=bot-right)
-  #   s5: pane 3 → rbar + rcont                 (3=rbar, 4=rcont, 5=bot-right)
-  #   s6: pane 5 → dbar + dcont                 (5=dbar, 6=dcont)
+  # Build layout
   # ---------------------------------------------------------------------------
   tmux new-session -d -s "$SESSION" -c "$DIR" -x "$(tput cols)" -y "$(tput lines)"
   tmux split-window -h -p 25 -t "$SESSION":0.0 -c "$DIR"   # s1 → 0=left,  1=right
@@ -442,20 +406,14 @@ devopen() {
   tmux select-pane  -t "$SESSION":0.5
   tmux split-window -v -p 90 -t "$SESSION":0.5 -c "$DIR"   # s6 → 5=dbar,  6=dcont
 
-  # Launch initial programs into their panes
+  # Launch initial programs
   tmux send-keys -t "$SESSION":0.0 "nvim \"$FILE\"" Enter
   tmux send-keys -t "$SESSION":0.4 "clear && claude" Enter
   tmux send-keys -t "$SESSION":0.2 "clear && zsh" Enter
   tmux send-keys -t "$SESSION":0.6 "while true; do clear && now; sleep 60; done" Enter
 
   # ---------------------------------------------------------------------------
-  # Shelf windows — hold inactive tabs off-screen
-  #
-  #   window 1 (tabs-right):  lazygit at slot 0, lazydocker at slot 1
-  #   window 2 (tabs-bottom): one zsh pane at slot 0
-  #
-  #   Initial MAP for right:  "-:0:1"  (tab0=active, tab1=slot0, tab2=slot1)
-  #   Initial MAP for bottom: "-"      (tab0=active, no inactive tabs)
+  # Shelf windows
   # ---------------------------------------------------------------------------
   tmux new-window -t "$SESSION" -c "$DIR" -n "tabs-right"
   tmux split-window -h -t "$SESSION":1 -c "$DIR"
@@ -472,10 +430,7 @@ devopen() {
   tmux set-environment -t "$SESSION" DEVOPEN_BMAP       "-"
 
   # ---------------------------------------------------------------------------
-  # Collapse state — one pair per collapsible pane (0=nvim, 2=bcont, 4=rcont, 6=dcont)
-  # SIZE stores width for pane 0, height for panes 2/4/6.
-  # Tag panes (1=bbar, 3=rbar, 5=dbar) are always visible and have no state.
-  # pane 6 (dcont) starts collapsed; all others start expanded.
+  # Collapse state
   # ---------------------------------------------------------------------------
   tmux set-environment -t "$SESSION" DEVOPEN_COLLAPSED_0 0
   tmux set-environment -t "$SESSION" DEVOPEN_SIZE_0      ""
@@ -487,18 +442,7 @@ devopen() {
   tmux set-environment -t "$SESSION" DEVOPEN_SIZE_6      ""
 
   # ---------------------------------------------------------------------------
-  # Tab-bar renderer — shared logic, instantiated twice (right and bottom).
-  #
-  # Runs in a tight loop (100ms), reading COUNT/CUR/MAP from tmux environment.
-  # For each logical tab i:
-  #   - active tab (i == CUR): read command from content pane directly
-  #   - inactive tab:          look up shelf slot via MAP, read from shelf window
-  # Writes two outputs each tick:
-  #   - LINE  printed to terminal (ANSI colored tab labels)
-  #   - CACHE written to file for fzf pickers to consume
-  #
-  # Arguments baked in at generation time (heredoc expansion):
-  #   SESSION, ENV_TAB, ENV_COUNT, ENV_MAP, CONTENT_PANE, SHELF_WIN, TABCACHE
+  # Tab-bar renderer — instantiated for right and bottom
   # ---------------------------------------------------------------------------
   _devopen_write_renderer() {
     local SCRIPT="$1"
@@ -515,8 +459,8 @@ devopen() {
 SESSION="${SESSION}"
 TABCACHE="${TABCACHE}"
 RESET="${ESC}[0m"
-ACTIVE="${ESC}[38;5;141m"    # purple — active tab label
-INACTIVE="${ESC}[38;5;248m"  # grey   — inactive tab label
+ACTIVE="${ESC}[38;5;141m"
+INACTIVE="${ESC}[38;5;248m"
 SEP="  "
 
 while tmux has-session -t "\$SESSION" 2>/dev/null; do
@@ -561,10 +505,7 @@ EOF
   tmux send-keys -t "$SESSION":0.1 "$BBAR_SCRIPT" Enter
 
   # ---------------------------------------------------------------------------
-  # Dash bar renderer (pane 5) — shows "● 1:calendar" label.
-  # Redraws every 1s so it recovers instantly after a resize.
-  # Polls khal every 30s to check if any event ends within 5 minutes;
-  # appends 󰃯 in orange when so.
+  # Dash bar renderer (pane 5)
   # ---------------------------------------------------------------------------
   local ESC_D=$'\033'
   cat > "$DBAR_SCRIPT" << EOF
@@ -603,7 +544,7 @@ EOF
   tmux send-keys -t "$SESSION":0.5 "$DBAR_SCRIPT" Enter
 
   # ---------------------------------------------------------------------------
-  # Switch script — moves a logical tab into the content pane.
+  # Switch script
   # ---------------------------------------------------------------------------
   cat > "$SWITCH_SCRIPT" << EOF
 #!/bin/sh
@@ -842,10 +783,6 @@ EOF
 
   # ---------------------------------------------------------------------------
   # prefix+C — collapse/uncollapse (context-aware)
-  #
-  # Tag panes (1=bbar, 3=rbar, 5=dbar) redirect to their content pair.
-  # Collapsed panes are resized to 1 (tmux minimum) not 0.
-  # Tag panes never change size — only content panes and nvim resize.
   # ---------------------------------------------------------------------------
   tmux bind-key -T prefix C run-shell "
     SESSION=\$(tmux display-message -p '#S')
@@ -865,7 +802,6 @@ EOF
     SAVED=\$(tmux show-environment     -t \$SESSION \$SVAR 2>/dev/null | cut -d= -f2)
 
     if [ \"\$COLLAPSED\" = \"1\" ]; then
-      # Uncollapse — restore saved size
       case \"\$TARGET\" in
         0)
           [ -z \"\$SAVED\" ] && SAVED=80
@@ -873,26 +809,25 @@ EOF
           ;;
         2)
           [ -z \"\$SAVED\" ] && SAVED=10
-          tmux resize-pane -t '${SESSION}:0.2' -y \"\$SAVED\"
           tmux resize-pane -t '${SESSION}:0.1' -y 2
+          tmux resize-pane -t '${SESSION}:0.2' -y \"\$SAVED\"
           ;;
         4)
           [ -z \"\$SAVED\" ] && SAVED=20
-          tmux resize-pane -t '${SESSION}:0.4' -y \"\$SAVED\"
           tmux resize-pane -t '${SESSION}:0.3' -y 2
+          tmux resize-pane -t '${SESSION}:0.4' -y \"\$SAVED\"
           COLL6=\$(tmux show-environment -t \$SESSION DEVOPEN_COLLAPSED_6 2>/dev/null | cut -d= -f2)
           [ \"\$COLL6\" = \"1\" ] && tmux resize-pane -t '${SESSION}:0.4' -y 9999
           ;;
         6)
           [ -z \"\$SAVED\" ] && SAVED=10
-          tmux resize-pane -t '${SESSION}:0.6' -y \"\$SAVED\"
           tmux resize-pane -t '${SESSION}:0.5' -y 2
+          tmux resize-pane -t '${SESSION}:0.6' -y \"\$SAVED\"
           ;;
       esac
       tmux set-environment -t \$SESSION \$CVAR 0
 
     else
-      # Collapse — save current size, then resize to 1 (tmux minimum, not 0)
       case \"\$TARGET\" in
         0)
           CUR=\$(tmux display-message -p -t '${SESSION}:0.0' '#{pane_width}')
@@ -902,23 +837,23 @@ EOF
         2)
           CUR=\$(tmux display-message -p -t '${SESSION}:0.2' '#{pane_height}')
           tmux set-environment -t \$SESSION \$SVAR \"\$CUR\"
-          tmux resize-pane -t '${SESSION}:0.2' -y 1
           tmux resize-pane -t '${SESSION}:0.1' -y 2
+          tmux resize-pane -t '${SESSION}:0.2' -y 1
           tmux resize-pane -t '${SESSION}:0.0' -y 9999
           ;;
         4)
           CUR=\$(tmux display-message -p -t '${SESSION}:0.4' '#{pane_height}')
           tmux set-environment -t \$SESSION \$SVAR \"\$CUR\"
-          tmux resize-pane -t '${SESSION}:0.4' -y 1
           tmux resize-pane -t '${SESSION}:0.3' -y 2
+          tmux resize-pane -t '${SESSION}:0.4' -y 1
           COLL6=\$(tmux show-environment -t \$SESSION DEVOPEN_COLLAPSED_6 2>/dev/null | cut -d= -f2)
           [ \"\$COLL6\" != \"1\" ] && tmux resize-pane -t '${SESSION}:0.6' -y 9999
           ;;
         6)
           CUR=\$(tmux display-message -p -t '${SESSION}:0.6' '#{pane_height}')
           tmux set-environment -t \$SESSION \$SVAR \"\$CUR\"
-          tmux resize-pane -t '${SESSION}:0.6' -y 1
           tmux resize-pane -t '${SESSION}:0.5' -y 2
+          tmux resize-pane -t '${SESSION}:0.6' -y 1
           tmux resize-pane -t '${SESSION}:0.4' -y 9999
           ;;
       esac
@@ -927,8 +862,7 @@ EOF
   "
 
   # ---------------------------------------------------------------------------
-  # prefix+G — fzf jump: select any tab or plain pane and focus it.
-  # Uncollapses the target pane if it is collapsed before focusing.
+  # prefix+G — fzf jump, uncollapses target if needed
   # ---------------------------------------------------------------------------
   tmux bind-key -T prefix G run-shell "
     SESSION=\$(tmux display-message -p '#S')
@@ -953,8 +887,8 @@ EOF
             if [ \"\$COLLAPSED\" = \"1\" ]; then
               SAVED=\$(tmux show-environment -t \$SESSION DEVOPEN_SIZE_2 2>/dev/null | cut -d= -f2)
               [ -z \"\$SAVED\" ] && SAVED=10
-              tmux resize-pane -t '${SESSION}:0.2' -y \"\$SAVED\"
               tmux resize-pane -t '${SESSION}:0.1' -y 2
+              tmux resize-pane -t '${SESSION}:0.2' -y \"\$SAVED\"
               tmux set-environment -t \$SESSION DEVOPEN_COLLAPSED_2 0
             fi ;;
           4)
@@ -962,8 +896,8 @@ EOF
             if [ \"\$COLLAPSED\" = \"1\" ]; then
               SAVED=\$(tmux show-environment -t \$SESSION DEVOPEN_SIZE_4 2>/dev/null | cut -d= -f2)
               [ -z \"\$SAVED\" ] && SAVED=20
-              tmux resize-pane -t '${SESSION}:0.4' -y \"\$SAVED\"
               tmux resize-pane -t '${SESSION}:0.3' -y 2
+              tmux resize-pane -t '${SESSION}:0.4' -y \"\$SAVED\"
               COLL6=\$(tmux show-environment -t \$SESSION DEVOPEN_COLLAPSED_6 2>/dev/null | cut -d= -f2)
               [ \"\$COLL6\" = \"1\" ] && tmux resize-pane -t '${SESSION}:0.4' -y 9999
               tmux set-environment -t \$SESSION DEVOPEN_COLLAPSED_4 0
@@ -973,8 +907,8 @@ EOF
             if [ \"\$COLLAPSED\" = \"1\" ]; then
               SAVED=\$(tmux show-environment -t \$SESSION DEVOPEN_SIZE_6 2>/dev/null | cut -d= -f2)
               [ -z \"\$SAVED\" ] && SAVED=10
-              tmux resize-pane -t '${SESSION}:0.6' -y \"\$SAVED\"
               tmux resize-pane -t '${SESSION}:0.5' -y 2
+              tmux resize-pane -t '${SESSION}:0.6' -y \"\$SAVED\"
               tmux set-environment -t \$SESSION DEVOPEN_COLLAPSED_6 0
             fi ;;
         esac
@@ -984,7 +918,7 @@ EOF
     esac
   "
 
-  # prefix+D — fzf kill: pick and kill any inactive tab
+  # prefix+D — fzf kill inactive tab
   tmux bind-key -T prefix D run-shell "
     SESSION=\$(tmux display-message -p '#S')
     TMPFILE=\$(mktemp /tmp/devopen-sel-XXXX)
@@ -1020,7 +954,7 @@ EOF
     tmux display-message \"Killed \$SYS tab \$(( IDX + 1 )) [\$NEWCOUNT left]\"
   "
 
-  # Alt+1..9 — jump to tab by number (context-aware; pass-through on other panes)
+  # Alt+1..9 — jump to tab by number
   local i
   for i in 1 2 3 4 5 6 7 8 9; do
     local IDX=$(( i - 1 ))
@@ -1034,7 +968,7 @@ EOF
     "
   done
 
-  # h / ← / l / → — prev/next tab (only active on tab-bar panes 1 and 3)
+  # h / ← / l / → — prev/next tab on bar panes only
   _devopen_bind_nav() {
     local KEY="$1" DIR="$2" OP="$3"
     tmux bind-key -n "$KEY" run-shell "
@@ -1057,27 +991,27 @@ EOF
   _devopen_bind_nav Right next "(CUR + 1)"
 
   # ---------------------------------------------------------------------------
-  # Final setup — return to main window, focus nvim, resize panes.
-  # dcont (pane 6) starts collapsed at 1 row — pane 4 claims freed space.
-  # All bar panes pinned to 2 rows.
+  # Final setup — pin all bars first, then collapse dcont, then let rcont grow.
+  #
+  # Order is critical:
+  #   1. Pin all three bar panes to 2 rows (left-to-right, top-to-bottom)
+  #   2. Collapse dcont to 1 row
+  #   3. Let rcont claim all remaining right-column height
   # ---------------------------------------------------------------------------
   tmux select-window -t "$SESSION:0"
   tmux select-pane   -t "$SESSION:0.0"
   ( sleep 0.2
-    tmux resize-pane -t "$SESSION:0.3" -y 2
-    tmux resize-pane -t "$SESSION:0.1" -y 2
-    tmux resize-pane -t "$SESSION:0.6" -y 1
-    tmux resize-pane -t "$SESSION:0.5" -y 2
-    tmux resize-pane -t "$SESSION:0.4" -y 9999
+    tmux resize-pane -t "$SESSION:0.1" -y 2     # bbar  — pin first
+    tmux resize-pane -t "$SESSION:0.3" -y 2     # rbar  — pin
+    tmux resize-pane -t "$SESSION:0.5" -y 2     # dbar  — pin before dcont collapses
+    tmux resize-pane -t "$SESSION:0.6" -y 1     # dcont — collapse to 1
+    tmux resize-pane -t "$SESSION:0.4" -y 9999  # rcont — claim remaining space
   ) &
   tmux attach -t "$SESSION"
 }
 
 # =============================================================================
 # devclose — tear down the current devopen workspace
-#
-# Removes all temp scripts and cache files, unbinds all devopen key bindings,
-# and kills the tmux session. Must be run from inside the target session.
 # =============================================================================
 devclose() {
   local SESSION
