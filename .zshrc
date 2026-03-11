@@ -215,47 +215,43 @@ devopen() {
 
   # Pane layout:
   #   ┌─────────────────┬────────┐
-  #   │                 │        │
-  #   │   pane 0        │ pane 3 │
-  #   │                 │        │
+  #   │                 │ pane 3 │  ← header (BAR=2)
+  #   │   pane 0        ├────────┤
+  #   │                 │ pane 4 │
   #   ├─────────────────┼────────┤
-  #   │   pane 1        │ pane 4 │  ← headers (2 filas, BAR=2)
+  #   │   pane 1        │ pane 5 │  ← headers (BAR=2)
   #   ├─────────────────┼────────┤
-  #   │   pane 2        │ pane 5 │
+  #   │   pane 2        │ pane 6 │
   #   └─────────────────┴────────┘
   #
   # Construcción por pane_id:
-  #   new-session          → %0 (full)
-  #   split %0 -h -p25     → %0=left, %1=right
-  #   split %0 -v          → %0=top-left(pane0), %2=bot-left(pane2)
-  #   _pane_header %2      → %3=header-left(pane1), %2=bot-left(pane2)
-  #   split %1 -v          → %1=top-right(pane3), %4=bot-right(pane5)
-  #   _pane_header %4      → %5=header-right(pane4), %4=bot-right(pane5)
+  #   new-session          → ID0 (full)
+  #   split ID0 -h -p25    → ID0=pane0, ID_R=right-col
+  #   split ID0 -v         → ID0=pane0, ID2=pane2
+  #   _pane_header ID2     → ID1=pane1, ID2=pane2
+  #   _pane_header ID_R    → ID3=pane3, ID_R=pane4
+  #   split ID_R -v        → ID_R=pane4, ID6=pane6
+  #   _pane_header ID6     → ID5=pane5, ID6=pane6
 
   tmux new-session -d -s "$SESSION" -x "$(tput cols)" -y "$(tput lines)"
 
-  local ID0 ID1 ID2 ID3 ID4 ID5
+  local ID0 ID_R ID1 ID2 ID3 ID4 ID5 ID6
 
-  # columna izquierda
   ID0=$(tmux display-message -p -t "$SESSION:0.0" '#{pane_id}')
-  ID1=$(tmux split-window -h -p 25 -t "$ID0" -P -F '#{pane_id}')   # derecha temporal
-  ID2=$(tmux split-window -v    -t "$ID0" -P -F '#{pane_id}')       # bot-left = pane 2
-  local HDR_L=$(_pane_header "$ID2")                                 # header sobre pane 2 = pane 1
-
-  # columna derecha
-  ID4=$(tmux split-window -v    -t "$ID1" -P -F '#{pane_id}')       # bot-right = pane 5
-  local HDR_R=$(_pane_header "$ID4")                                 # header sobre pane 5 = pane 4
-
-  # mapeo final a índices para layout.sh
-  # en este punto el orden visual de arriba a abajo, izq a der es:
-  # ID0=pane0, HDR_L=pane1, ID2=pane2, ID1=pane3, HDR_R=pane4, ID4=pane5
+  ID_R=$(tmux split-window -h -p 25 -t "$ID0" -P -F '#{pane_id}')
+  ID2=$(tmux split-window -v    -t "$ID0" -P -F '#{pane_id}')
+  ID1=$(_pane_header "$ID2")
+  ID3=$(_pane_header "$ID_R")
+  ID4="$ID_R"
+  ID6=$(tmux split-window -v -t "$ID4" -P -F '#{pane_id}')
+  ID5=$(_pane_header "$ID6")
 
   # layout.sh — pure resize
   # Args: SESSION  P2_H
-  #   P2_H = height of pane 2 and pane 5 (must match for alignment)
-  #   BAR  = 2 rows (pane 1 and pane 4)
+  #   P2_H = height of pane 2 and pane 6 (must match for alignment)
+  #   BAR  = 2 rows (pane 1, pane 3, pane 5)
   # Derived:
-  #   P0_H = P3_H = H - BAR - P2_H
+  #   P0_H = P4_H = H - BAR - P2_H
   cat > "${P}-layout.sh" << LAYOUT
 #!/bin/zsh
 SESSION=\$1
@@ -265,12 +261,13 @@ H=\$(tmux display-message -p -t "\$SESSION" "#{window_height}" 2>/dev/null)
 [[ -z "\$H" || \$H -lt 10 ]] && exit 1
 (( TOP_H = H - BAR - P2_H ))
 (( TOP_H < 1 )) && TOP_H=1
-tmux resize-pane -t "$ID0"    -y \$TOP_H 2>/dev/null  # pane 0
-tmux resize-pane -t "$HDR_L"  -y \$BAR   2>/dev/null  # pane 1
-tmux resize-pane -t "$ID2"    -y \$P2_H  2>/dev/null  # pane 2
-tmux resize-pane -t "$ID1"    -y \$TOP_H 2>/dev/null  # pane 3
-tmux resize-pane -t "$HDR_R"  -y \$BAR   2>/dev/null  # pane 4
-tmux resize-pane -t "$ID4"    -y \$P2_H  2>/dev/null  # pane 5
+tmux resize-pane -t "$ID0" -y \$TOP_H 2>/dev/null  # pane 0
+tmux resize-pane -t "$ID1" -y \$BAR   2>/dev/null  # pane 1
+tmux resize-pane -t "$ID2" -y \$P2_H  2>/dev/null  # pane 2
+tmux resize-pane -t "$ID3" -y \$BAR   2>/dev/null  # pane 3
+tmux resize-pane -t "$ID4" -y \$TOP_H 2>/dev/null  # pane 4
+tmux resize-pane -t "$ID5" -y \$BAR   2>/dev/null  # pane 5
+tmux resize-pane -t "$ID6" -y \$P2_H  2>/dev/null  # pane 6
 LAYOUT
   chmod +x "${P}-layout.sh"
 
