@@ -201,189 +201,8 @@ bwsync() {
   bw sync && echo "🔄 Vault synced"
 }
 
-# ─── kdash — terminal calendar dashboard ─────────────────────────────────────
-# Add this to your ~/.zshrc
-# Usage: kdash
-
-function kdash() {
-  local reset="\033[0m"
-  local bold="\033[1m"
-  local dim="\033[2m"
-  local italic="\033[3m"
-  local white="\033[97m"
-  local gray="\033[38;5;245m"
-  local accent="\033[38;5;116m"
-  local accent_bold="\033[1;38;5;116m"
-  local border="\033[38;5;238m"
-  local muted="\033[38;5;240m"
-
-  local now_int=$(date "+%H%M")
-  local today_num=$(date "+%-d")
-  local pad="  "
-
-  local color_google="\033[38;5;75m"
-  local color_familia="\033[38;5;213m"
-  local color_festivos="\033[38;5;120m"
-  local color_daruma="\033[38;5;215m"
-  local color_allaria="\033[38;5;159m"
-  local color_default="\033[97m"
-
-  local icon_google="󰊫"
-  local icon_familia="󰉌"
-  local icon_festivos="󰃦"
-  local icon_daruma="󰃯"
-  local icon_allaria="󰃯"
-  local icon_default="󰃯"
-
-  local cal_w=22
-  local right_w=38
-  local i=0
-
-  # ── build left panel: mini calendar ──────────────────────────────────────────
-  local -a left_lines
-  local lnum=0
-  while IFS= read -r line; do
-    if (( lnum == 0 )); then
-      local mh_len=${#line}
-      local mh_pad=$(( (cal_w - mh_len) / 2 ))
-      local mh_sp=""
-      i=0; while (( i < mh_pad )); do mh_sp+=" "; (( i++ )); done
-      left_lines+=("${mh_sp}${accent_bold}${line}${reset}")
-    elif (( lnum == 1 )); then
-      left_lines+=("${gray}${line}${reset}")
-    else
-      # manually highlight today_num as a word in the line
-      local before="" after="" found=0
-      local rest="$line"
-      local styled=""
-      while [[ -n "$rest" ]]; do
-        # try to match leading spaces + today_num as a number token
-        if [[ "$rest" =~ ^([[:space:]]*)([0-9]+)(.*) ]]; then
-          local spaces="${match[1]}"
-          local num="${match[2]}"
-          local tail="${match[3]}"
-          if [[ "$num" == "$today_num" ]]; then
-            styled+="${spaces}${reset}${bold}${accent}${num}${reset}${dim}"
-          else
-            styled+="${spaces}${num}"
-          fi
-          rest="$tail"
-        else
-          # non-numeric char, pass through
-          styled+="${rest[1]}"
-          rest="${rest:1}"
-        fi
-      done
-      left_lines+=("${dim}${styled}${reset}")
-    fi
-    (( lnum++ ))
-  done <<< "$(cal)"
-
-  # ── build right panel ─────────────────────────────────────────────────────────
-  local -a right_lines
-
-  local day_name=$(date "+%A")
-  local day_num=$(date "+%d")
-  local month_year=$(date "+%B %Y")
-  local time_now=$(date "+%H:%M")
-  local location="Buenos Aires"
-  right_lines+=("${muted}󰍎 ${reset}${dim}${location}${reset}  ${accent_bold}󰃭${reset}  ${bold}${white}${day_name}${reset}  ${muted}·${reset}  ${accent_bold}${day_num}${reset}  ${gray}${month_year}${reset}  ${muted}·${reset}  ${accent}${time_now}${reset}")
-
-  local rdiv=""
-  i=0; while (( i < right_w )); do rdiv+="─"; (( i++ )); done
-  right_lines+=("${border}${rdiv}${reset}")
-
-  # weather
-  local weather_cache="/tmp/kdash_weather"
-  if [[ ! -f "$weather_cache" ]] || (( $(date +%s) - $(date -r "$weather_cache" +%s 2>/dev/null || echo 0) > 1800 )); then
-    (curl -sf "wttr.in/Buenos+Aires?format=%c+%t+feels+%f+·+%h+hum+·+%w" > "$weather_cache" 2>/dev/null &)
-  fi
-
-  local weather=""
-  [[ -f "$weather_cache" ]] && weather=$(cat "$weather_cache")
-
-  if [[ -n "$weather" ]]; then
-    local w_icon w_temp w_feels w_hum w_wind
-    w_icon=$(echo "$weather" | grep -oP '^\S+')
-    w_temp=$(echo "$weather" | grep -oP '[+-]\d+°C' | head -1)
-    w_feels=$(echo "$weather" | grep -oP '[+-]\d+°C' | tail -1)
-    w_hum=$(echo "$weather" | grep -oP '\d+%')
-    w_wind=$(echo "$weather" | grep -oP '[↖↗↘↙←→↑↓]\d+km/h')
-    right_lines+=("")
-    right_lines+=("${white}${w_icon}${reset}  ${accent_bold}${w_temp}${reset}  ${dim}feels${reset} ${gray}${w_feels}${reset}  ${muted}·${reset}  ${accent}${w_hum}${reset} ${dim}hum${reset}  ${muted}·${reset}  ${gray}${w_wind}${reset}")
-    right_lines+=("")
-    right_lines+=("${border}${rdiv}${reset}")
-  fi
-
-  # events
-  local raw_events
-  raw_events=$(khal list today --format "{start-time}|{end-time}|{title}|{calendar}" 2>/dev/null)
-
-  if [[ -z "$raw_events" ]]; then
-    right_lines+=("")
-    right_lines+=("  ${muted}${italic}no events today${reset}")
-  else
-    local -A seen_events
-    while IFS='|' read -r start end title calendar; do
-      [[ "$start" =~ ^(Today|Tomorrow|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Lunes|Martes|Miercoles|Jueves|Viernes|Sabado|Domingo) ]] && continue
-      [[ -z "$title" ]] && continue
-      local event_key="${start}|${title}"
-      [[ -n "${seen_events[$event_key]}" ]] && continue
-      seen_events[$event_key]=1
-
-      local color="$color_default" icon="$icon_default"
-      case "$calendar" in
-        google)   color="$color_google";   icon="$icon_google"   ;;
-        familia)  color="$color_familia";  icon="$icon_familia"  ;;
-        festivos) color="$color_festivos"; icon="$icon_festivos" ;;
-        daruma)   color="$color_daruma";   icon="$icon_daruma"   ;;
-        allaria)  color="$color_allaria";  icon="$icon_allaria"  ;;
-      esac
-
-      local cal_label="${calendar:-?}"
-      local time_style="" title_style="$white"
-      local eline=""
-
-      if [[ -z "$start" ]]; then
-        eline=$(printf "${color}${icon}${reset}  ${gray}%-10s${reset}  ${dim}all day${reset}  ${bold}${white}%s${reset}" "$cal_label" "$title")
-      else
-        local start_int=${start//:/}
-        local end_int=2359
-        [[ -n "$end" ]] && end_int=${end//:/}
-        if (( start_int < now_int )); then
-          time_style="$dim"; title_style="$dim"
-        fi
-        if (( start_int <= now_int && now_int <= end_int )); then
-          time_style=""; title_style="$white"
-        fi
-        eline=$(printf "${color}${icon}${reset}  ${gray}%-10s${reset}  ${time_style}${color}${bold}%s${reset}${time_style} → %s${reset}  ${title_style}%s${reset}" "$cal_label" "$start" "$end" "$title")
-      fi
-      right_lines+=("$eline")
-    done <<< "$raw_events"
-  fi
-
-  # ── render side by side ───────────────────────────────────────────────────────
-  local total=$(( ${#left_lines[@]} > ${#right_lines[@]} ? ${#left_lines[@]} : ${#right_lines[@]} ))
-  local sep="  ${border}│${reset}  "
-
-  echo ""
-  for (( row=1; row<=total; row++ )); do
-    local left="${left_lines[$row]:-}"
-    local right="${right_lines[$row]:-}"
-    [[ -z "$left" && -z "$right" ]] && continue
-
-    local ln=$(printf '%b' "$left" | sed 's/\x1b\[[0-9;]*m//g' | tr -d '\n' | wc -m)
-    local lp=""
-    i=0; while (( i < cal_w - ln + 1 )); do lp+=" "; (( i++ )); done
-
-    echo -e "${pad}${left}${lp}${sep}${right}"
-  done
-
-  echo ""
-}
-
 # ─── TMUX ────────────────────────────────────────────────────
-devopen() {
+function devopen() {
   local FILE="${1:-.}"
   local DIR
   if [ -d "$FILE" ]; then
@@ -455,94 +274,66 @@ devopen() {
   tmux set-environment -t "$SESSION" DEVOPEN_BTAB_COUNT 1
   tmux set-environment -t "$SESSION" DEVOPEN_BMAP "-"
 
-  # --- Right tab-bar renderer (pane 3) ---
-  local RTAGTMP="/tmp/devopen-rtags-${SESSION}.sh"
+  # --- Tab-bar renderer (shared script, parametrized) ---
+  # Usage: tabrender.sh <session> <env_count> <env_cur> <env_map> <content_pane> <shelf_win> <tabcache>
+  local TAGRNDTMP="/tmp/devopen-tabrender-${SESSION}.sh"
   local RTABCACHE="/tmp/devopen-rtabs-${SESSION}.cache"
-  cat > "$RTAGTMP" << RTAGEOF
-#!/bin/sh
-SESSION="${SESSION}"
-TABCACHE="${RTABCACHE}"
-RESET="\033[0m"
-A_TEXT="\033[38;5;141m"
-I_TEXT="\033[38;5;248m"
-SEP="  "
-while tmux has-session -t "\$SESSION" 2>/dev/null; do
-  COUNT=\$(tmux show-environment -t "\$SESSION" DEVOPEN_RTAB_COUNT 2>/dev/null | cut -d= -f2)
-  CUR=\$(tmux show-environment -t "\$SESSION" DEVOPEN_RTAB 2>/dev/null | cut -d= -f2)
-  MAP=\$(tmux show-environment -t "\$SESSION" DEVOPEN_RMAP 2>/dev/null | cut -d= -f2)
-  [ -z "\$COUNT" ] && sleep 0.1 && continue
-  LINE=""
-  CACHE=""
-  for i in \$(seq 0 \$(( COUNT - 1 ))); do
-    NUM=\$(( i + 1 ))
-    if [ "\$i" = "\$CUR" ]; then
-      CMD=\$(tmux display-message -p -t "\${SESSION}:0.4" "#{pane_current_command}" 2>/dev/null)
-      CMD=\$(echo "\$CMD" | cut -c1-8)
-      LINE="\${LINE}\${A_TEXT}● \${NUM}:\${CMD}\${RESET}\${SEP}"
-      CACHE="\${CACHE}\${i} * \${CMD}\n"
-    else
-      SHELF_IDX=\$(echo "\$MAP" | tr ':' '\n' | sed -n "\$(( i + 1 ))p")
-      CMD=\$(tmux display-message -p -t "\${SESSION}:1.\${SHELF_IDX}" "#{pane_current_command}" 2>/dev/null)
-      CMD=\$(echo "\$CMD" | cut -c1-8)
-      LINE="\${LINE}\${I_TEXT}○ \${NUM}:\${CMD}\${RESET}\${SEP}"
-      CACHE="\${CACHE}\${i}   \${CMD}\n"
-    fi
-  done
-  printf "\033[H\033[2J"
-  printf " \${LINE}\n"
-  printf "\${CACHE}" > "\$TABCACHE"
-  sleep 0.1
-done
-RTAGEOF
-  chmod +x "$RTAGTMP"
-  tmux send-keys -t "$SESSION":0.3 "$RTAGTMP" Enter
-
-  # --- Bottom tab-bar renderer (pane 1) ---
-  local BTAGTMP="/tmp/devopen-btags-${SESSION}.sh"
   local BTABCACHE="/tmp/devopen-btabs-${SESSION}.cache"
-  cat > "$BTAGTMP" << BTAGEOF
-#!/bin/sh
-SESSION="${SESSION}"
-TABCACHE="${BTABCACHE}"
+  cat > "$TAGRNDTMP" << TAGRNDEOF
+#!/bin/zsh
+SESSION="\$1"
+ENV_COUNT="\$2"
+ENV_CUR="\$3"
+ENV_MAP="\$4"
+CONTENT_PANE="\$5"
+SHELF_WIN="\$6"
+TABCACHE="\$7"
 RESET="\033[0m"
 A_TEXT="\033[38;5;141m"
 I_TEXT="\033[38;5;248m"
 SEP="  "
 while tmux has-session -t "\$SESSION" 2>/dev/null; do
-  COUNT=\$(tmux show-environment -t "\$SESSION" DEVOPEN_BTAB_COUNT 2>/dev/null | cut -d= -f2)
-  CUR=\$(tmux show-environment -t "\$SESSION" DEVOPEN_BTAB 2>/dev/null | cut -d= -f2)
-  MAP=\$(tmux show-environment -t "\$SESSION" DEVOPEN_BMAP 2>/dev/null | cut -d= -f2)
+  COUNT=\$(tmux show-environment -t "\$SESSION" "\$ENV_COUNT" 2>/dev/null | cut -d= -f2)
+  CUR=\$(tmux show-environment -t "\$SESSION" "\$ENV_CUR" 2>/dev/null | cut -d= -f2)
+  MAP=\$(tmux show-environment -t "\$SESSION" "\$ENV_MAP" 2>/dev/null | cut -d= -f2)
   [ -z "\$COUNT" ] && sleep 0.1 && continue
   LINE=""
   CACHE=""
-  for i in \$(seq 0 \$(( COUNT - 1 ))); do
+  i=0
+  while (( i < COUNT )); do
     NUM=\$(( i + 1 ))
     if [ "\$i" = "\$CUR" ]; then
-      CMD=\$(tmux display-message -p -t "\${SESSION}:0.2" "#{pane_current_command}" 2>/dev/null)
+      CMD=\$(tmux display-message -p -t "\${CONTENT_PANE}" "#{pane_current_command}" 2>/dev/null)
       CMD=\$(echo "\$CMD" | cut -c1-8)
       LINE="\${LINE}\${A_TEXT}● \${NUM}:\${CMD}\${RESET}\${SEP}"
       CACHE="\${CACHE}\${i} * \${CMD}\n"
     else
       SHELF_IDX=\$(echo "\$MAP" | tr ':' '\n' | sed -n "\$(( i + 1 ))p")
-      CMD=\$(tmux display-message -p -t "\${SESSION}:2.\${SHELF_IDX}" "#{pane_current_command}" 2>/dev/null)
+      CMD=\$(tmux display-message -p -t "\${SHELF_WIN}.\${SHELF_IDX}" "#{pane_current_command}" 2>/dev/null)
       CMD=\$(echo "\$CMD" | cut -c1-8)
       LINE="\${LINE}\${I_TEXT}○ \${NUM}:\${CMD}\${RESET}\${SEP}"
       CACHE="\${CACHE}\${i}   \${CMD}\n"
     fi
+    (( i++ ))
   done
   printf "\033[H\033[2J"
   printf " \${LINE}\n"
   printf "\${CACHE}" > "\$TABCACHE"
   sleep 0.1
 done
-BTAGEOF
-  chmod +x "$BTAGTMP"
-  tmux send-keys -t "$SESSION":0.1 "$BTAGTMP" Enter
+TAGRNDEOF
+  chmod +x "$TAGRNDTMP"
+
+  # Launch right renderer (pane 3)
+  tmux send-keys -t "$SESSION":0.3 "$TAGRNDTMP $SESSION DEVOPEN_RTAB_COUNT DEVOPEN_RTAB DEVOPEN_RMAP ${SESSION}:0.4 ${SESSION}:1 $RTABCACHE" Enter
+
+  # Launch bottom renderer (pane 1)
+  tmux send-keys -t "$SESSION":0.1 "$TAGRNDTMP $SESSION DEVOPEN_BTAB_COUNT DEVOPEN_BTAB DEVOPEN_BMAP ${SESSION}:0.2 ${SESSION}:2 $BTABCACHE" Enter
 
   # --- Shared switch script ---
   local SWITCH_SCRIPT="/tmp/devopen-switch-${SESSION}.sh"
   cat > "$SWITCH_SCRIPT" << SWITCHEOF
-#!/bin/sh
+#!/bin/zsh
 SESSION="${SESSION}"
 SYSTEM="\$1"
 IDX="\$2"
@@ -564,15 +355,10 @@ CUR=\$(tmux show-environment -t "\$SESSION" "\$ENV_TAB" | cut -d= -f2)
 [ -z "\$IDX" ] && exit 0
 [ "\$IDX" -ge "\$COUNT" ] && tmux display-message -t "\$SESSION" "No tab \$(( IDX + 1 ))" && exit 0
 [ "\$IDX" = "\$CUR" ] && exit 0
-# MAP is a colon-separated list of shelf slots indexed by tab number.
-# e.g. MAP="1:0:2" means tab0->shelf1, tab1->shelf0, tab2->shelf2
-# The active tab has no shelf slot (it's in CONTENT_PANE); its MAP entry is "-"
 MAP=\$(tmux show-environment -t "\$SESSION" "\$ENV_MAP" 2>/dev/null | cut -d= -f2)
 TARGET_SHELF=\$(echo "\$MAP" | tr ':' '\n' | sed -n "\$(( IDX + 1 ))p")
 CUR_SLOT=\$(echo "\$MAP" | tr ':' '\n' | sed -n "\$(( CUR + 1 ))p")
-# Swap target tab into content pane
 tmux swap-pane -s "\$CONTENT_PANE" -t "\${SHELF_WIN}.\${TARGET_SHELF}"
-# Update map: active tab now occupies TARGET_SHELF slot, target tab is active (-)
 NEW_MAP=\$(echo "\$MAP" | tr ':' '\n' | awk -v cur="\$CUR" -v idx="\$IDX" -v slot="\$TARGET_SHELF" '
   NR == cur+1 { print slot; next }
   NR == idx+1 { print "-"; next }
@@ -589,98 +375,63 @@ SWITCHEOF
   # --- New tab script ---
   local NEW_SCRIPT="/tmp/devopen-new-${SESSION}.sh"
   cat > "$NEW_SCRIPT" << NEWEOF
-#!/bin/sh
+#!/bin/zsh
 printf "command > "
 read -r CMD
 printf "%s\n" "\$CMD" > "\$TMPFILE"
 NEWEOF
   chmod +x "$NEW_SCRIPT"
 
-  # --- Jump script (unified: shows all tabs from both panes + plain panes) ---
-  local JUMP_SCRIPT="/tmp/devopen-jump-${SESSION}.sh"
-  cat > "$JUMP_SCRIPT" << JUMPEOF
-#!/bin/sh
+  # --- Jump/Kill script (shared, parametrized) ---
+  # Usage: tabpick.sh <mode>   mode = jump | kill
+  local TABPICK_SCRIPT="/tmp/devopen-tabpick-${SESSION}.sh"
+  local JUMP_SCRIPT="$TABPICK_SCRIPT"
+  local KILL_SCRIPT="$TABPICK_SCRIPT"
+  cat > "$TABPICK_SCRIPT" << TABPICKEOF
+#!/bin/zsh
+MODE="\$1"   # jump | kill
 RTABCACHE="${RTABCACHE}"
 BTABCACHE="${BTABCACHE}"
 SESSION="${SESSION}"
 COMBINED=""
-# Plain panes (no tab system) — just select the pane directly
-# pane 0 = nvim
-CMD=\$(tmux display-message -p -t "\${SESSION}:0.0" "#{pane_current_command}" 2>/dev/null | cut -c1-8)
-COMBINED="\${COMBINED}pane:0 pane:0 * \${CMD}\n"
-# Add right tabs
-while IFS= read -r line; do
-  [ -z "\$line" ] && continue
-  IDX=\$(echo "\$line" | awk '{print \$1}')
-  NUM=\$(( IDX + 1 ))
-  REST=\$(echo "\$line" | cut -d' ' -f2-)
-  COMBINED="\${COMBINED}right:\${IDX} right:\${NUM} \${REST}\n"
-done < "\$RTABCACHE"
-# Add bottom tabs
-while IFS= read -r line; do
-  [ -z "\$line" ] && continue
-  IDX=\$(echo "\$line" | awk '{print \$1}')
-  NUM=\$(( IDX + 1 ))
-  REST=\$(echo "\$line" | cut -d' ' -f2-)
-  COMBINED="\${COMBINED}bottom:\${IDX} bottom:\${NUM} \${REST}\n"
-done < "\$BTABCACHE"
-SELECTED=\$(printf "%b" "\$COMBINED" | fzf \
-  --prompt="jump > " \
-  --height=100% \
-  --layout=reverse \
-  --border=none \
-  --with-nth=2.. \
-  --color="prompt:#89b4fa,pointer:#f38ba8,bg:#1e1e2e,bg+:#313244,fg+:#a6e3a1" \
-  --preview-window=hidden)
-[ -z "\$SELECTED" ] && printf "\n" > "\$TMPFILE" && exit 0
-SYS=\$(echo "\$SELECTED" | awk '{print \$1}' | cut -d: -f1)
-IDX=\$(echo "\$SELECTED" | awk '{print \$1}' | cut -d: -f2)
-printf "%s\n%s\n" "\$SYS" "\$IDX" > "\$TMPFILE"
-JUMPEOF
-  chmod +x "$JUMP_SCRIPT"
-
-  # --- Kill script (unified: shows all tabs from both panes, excludes active ones) ---
-  local KILL_SCRIPT="/tmp/devopen-kill-${SESSION}.sh"
-  cat > "$KILL_SCRIPT" << KILLEOF
-#!/bin/sh
-RTABCACHE="${RTABCACHE}"
-BTABCACHE="${BTABCACHE}"
-SESSION="${SESSION}"
-RCUR=\$(tmux show-environment -t "\$SESSION" DEVOPEN_RTAB 2>/dev/null | cut -d= -f2)
-BCUR=\$(tmux show-environment -t "\$SESSION" DEVOPEN_BTAB 2>/dev/null | cut -d= -f2)
-# Build unified list excluding active tabs (marked with *), display 1-based
-COMBINED=""
-while IFS= read -r line; do
-  [ -z "\$line" ] && continue
-  echo "\$line" | grep -q " \* " && continue
-  IDX=\$(echo "\$line" | awk '{print \$1}')
-  NUM=\$(( IDX + 1 ))
-  REST=\$(echo "\$line" | cut -d' ' -f2-)
-  COMBINED="\${COMBINED}right:\${IDX} right:\${NUM} \${REST}\n"
-done < "\$RTABCACHE"
-while IFS= read -r line; do
-  [ -z "\$line" ] && continue
-  echo "\$line" | grep -q " \* " && continue
-  IDX=\$(echo "\$line" | awk '{print \$1}')
-  NUM=\$(( IDX + 1 ))
-  REST=\$(echo "\$line" | cut -d' ' -f2-)
-  COMBINED="\${COMBINED}bottom:\${IDX} bottom:\${NUM} \${REST}\n"
-done < "\$BTABCACHE"
+if [ "\$MODE" = "jump" ]; then
+  CMD=\$(tmux display-message -p -t "\${SESSION}:0.0" "#{pane_current_command}" 2>/dev/null | cut -c1-8)
+  COMBINED="\${COMBINED}pane:0 pane:0 * \${CMD}\n"
+fi
+for cache_sys in "\${RTABCACHE}:right" "\${BTABCACHE}:bottom"; do
+  CACHE=\${cache_sys%%:*}
+  SYS=\${cache_sys##*:}
+  while IFS= read -r line; do
+    [ -z "\$line" ] && continue
+    [ "\$MODE" = "kill" ] && echo "\$line" | grep -q " \* " && continue
+    IDX=\$(echo "\$line" | awk '{print \$1}')
+    NUM=\$(( IDX + 1 ))
+    REST=\$(echo "\$line" | cut -d' ' -f2-)
+    COMBINED="\${COMBINED}\${SYS}:\${IDX} \${SYS}:\${NUM} \${REST}\n"
+  done < "\$CACHE"
+done
 [ -z "\$COMBINED" ] && printf "\n" > "\$TMPFILE" && exit 0
+if [ "\$MODE" = "jump" ]; then
+  PROMPT="jump > "
+  COLOR="prompt:#89b4fa,pointer:#f38ba8,bg:#1e1e2e,bg+:#313244,fg+:#a6e3a1"
+else
+  PROMPT="kill > "
+  COLOR="prompt:#f38ba8,pointer:#f38ba8,bg:#1e1e2e,bg+:#313244,fg+:#f38ba8"
+fi
 SELECTED=\$(printf "%b" "\$COMBINED" | fzf \
-  --prompt="kill > " \
+  --prompt="\$PROMPT" \
   --height=100% \
   --layout=reverse \
   --border=none \
   --with-nth=2.. \
-  --color="prompt:#f38ba8,pointer:#f38ba8,bg:#1e1e2e,bg+:#313244,fg+:#f38ba8" \
+  --color="\$COLOR" \
   --preview-window=hidden)
 [ -z "\$SELECTED" ] && printf "\n" > "\$TMPFILE" && exit 0
 SYS=\$(echo "\$SELECTED" | awk '{print \$1}' | cut -d: -f1)
 IDX=\$(echo "\$SELECTED" | awk '{print \$1}' | cut -d: -f2)
 printf "%s\n%s\n" "\$SYS" "\$IDX" > "\$TMPFILE"
-KILLEOF
-  chmod +x "$KILL_SCRIPT"
+TABPICKEOF
+  chmod +x "$TABPICK_SCRIPT"
 
   local SWITCH="${SWITCH_SCRIPT}"
   local NEW="${NEW_SCRIPT}"
@@ -752,7 +503,7 @@ KILLEOF
     tmux kill-pane -t \"\${SHELF}.\${PREV_SHELF}\"
     NEW_MAP=\$(echo \"\$MAP\" | tr ':' '\n' | awk -v cur=\"\$CUR\" -v prev=\"\$PREV\" -v slot=\"\$PREV_SHELF\" '
       NR == prev+1 { next }
-      NR == cur+1  { print "-"; next }
+      NR == cur+1  { print \"-\"; next }
       { val=\$0+0; if (val > slot) val--; print val }
     ' | tr '\n' ':' | sed 's/:\$//')
     NEWCOUNT=\$(( COUNT - 1 ))
@@ -768,7 +519,7 @@ KILLEOF
   tmux bind-key -T prefix G run-shell "
     SESSION=\$(tmux display-message -p '#S')
     TMPFILE=\$(mktemp /tmp/devopen-sel-XXXX)
-    tmux popup -E -w 50 -h 20 \"TMPFILE=\$TMPFILE ${JUMP}\"
+    tmux popup -E -w 50 -h 20 \"TMPFILE=\$TMPFILE ${JUMP} jump\"
     SYS=\$(sed -n '1p' \$TMPFILE); IDX=\$(sed -n '2p' \$TMPFILE); rm -f \$TMPFILE
     [ -z \"\$SYS\" ] || [ -z \"\$IDX\" ] && exit 0
     if [ \"\$SYS\" = \"pane\" ]; then
@@ -790,7 +541,7 @@ KILLEOF
     TOTAL=\$(( RCOUNT + BCOUNT ))
     [ \$TOTAL -le 2 ] && tmux display-message 'Cannot close last tab in each pane' && exit 0
     TMPFILE=\$(mktemp /tmp/devopen-sel-XXXX)
-    tmux popup -E -w 50 -h 20 \"TMPFILE=\$TMPFILE ${KILL}\"
+    tmux popup -E -w 50 -h 20 \"TMPFILE=\$TMPFILE ${KILL} kill\"
     SYS=\$(sed -n '1p' \$TMPFILE); IDX=\$(sed -n '2p' \$TMPFILE); rm -f \$TMPFILE
     [ -z \"\$SYS\" ] || [ -z \"\$IDX\" ] && exit 0
     if [ \"\$SYS\" = \"right\" ]; then
@@ -818,8 +569,9 @@ KILLEOF
   "
 
   # --- Alt+1-9: jump by number ---
-  for i in 1 2 3 4 5 6 7 8 9; do
-    local IDX=$(( i - 1 ))
+  local IDX
+  for i in {1..9}; do
+    IDX=$(( i - 1 ))
     tmux bind-key -n "M-$i" run-shell "
       PANE=\$(tmux display-message -p '#{pane_index}')
       case \"\$PANE\" in
@@ -831,58 +583,34 @@ KILLEOF
   done
 
   # --- h/← and l/→: only on tab-bar panes 3 and 1 ---
-  tmux bind-key -n h run-shell "
-    PANE=\$(tmux display-message -p '#{pane_index}')
-    SESSION=\$(tmux display-message -p '#S')
-    case \"\$PANE\" in
-      3) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB_COUNT | cut -d= -f2)
-         CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB | cut -d= -f2)
-         ${SWITCH} right \$(( (CUR - 1 + COUNT) % COUNT )) ;;
-      1) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB_COUNT | cut -d= -f2)
-         CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB | cut -d= -f2)
-         ${SWITCH} bottom \$(( (CUR - 1 + COUNT) % COUNT )) ;;
-      *) tmux send-keys 'h' ;;
-    esac
-  "
-  tmux bind-key -n l run-shell "
-    PANE=\$(tmux display-message -p '#{pane_index}')
-    SESSION=\$(tmux display-message -p '#S')
-    case \"\$PANE\" in
-      3) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB_COUNT | cut -d= -f2)
-         CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB | cut -d= -f2)
-         ${SWITCH} right \$(( (CUR + 1) % COUNT )) ;;
-      1) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB_COUNT | cut -d= -f2)
-         CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB | cut -d= -f2)
-         ${SWITCH} bottom \$(( (CUR + 1) % COUNT )) ;;
-      *) tmux send-keys 'l' ;;
-    esac
-  "
-  tmux bind-key -n Left run-shell "
-    PANE=\$(tmux display-message -p '#{pane_index}')
-    SESSION=\$(tmux display-message -p '#S')
-    case \"\$PANE\" in
-      3) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB_COUNT | cut -d= -f2)
-         CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB | cut -d= -f2)
-         ${SWITCH} right \$(( (CUR - 1 + COUNT) % COUNT )) ;;
-      1) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB_COUNT | cut -d= -f2)
-         CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB | cut -d= -f2)
-         ${SWITCH} bottom \$(( (CUR - 1 + COUNT) % COUNT )) ;;
-      *) tmux send-keys 'Left' ;;
-    esac
-  "
-  tmux bind-key -n Right run-shell "
-    PANE=\$(tmux display-message -p '#{pane_index}')
-    SESSION=\$(tmux display-message -p '#S')
-    case \"\$PANE\" in
-      3) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB_COUNT | cut -d= -f2)
-         CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB | cut -d= -f2)
-         ${SWITCH} right \$(( (CUR + 1) % COUNT )) ;;
-      1) COUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB_COUNT | cut -d= -f2)
-         CUR=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB | cut -d= -f2)
-         ${SWITCH} bottom \$(( (CUR + 1) % COUNT )) ;;
-      *) tmux send-keys 'Right' ;;
-    esac
-  "
+  # Shared nav helper: usage: tabnav.sh <dir>  (dir = next|prev)
+  local NAVTMP="/tmp/devopen-tabnav-${SESSION}.sh"
+  cat > "$NAVTMP" << NAVEOF
+#!/bin/zsh
+DIR="\$1"   # next | prev
+FALLBACK="\$2"
+SESSION=\$(tmux display-message -p '#S')
+PANE=\$(tmux display-message -p '#{pane_index}')
+case "\$PANE" in
+  3|4) SYS=right;  EC=DEVOPEN_RTAB_COUNT; ET=DEVOPEN_RTAB ;;
+  1|2) SYS=bottom; EC=DEVOPEN_BTAB_COUNT; ET=DEVOPEN_BTAB ;;
+  *)   tmux send-keys "\$FALLBACK"; exit 0 ;;
+esac
+COUNT=\$(tmux show-environment -t "\$SESSION" "\$EC" | cut -d= -f2)
+CUR=\$(tmux show-environment -t "\$SESSION" "\$ET" | cut -d= -f2)
+if [ "\$DIR" = "next" ]; then
+  NEXT=\$(( (CUR + 1) % COUNT ))
+else
+  NEXT=\$(( (CUR - 1 + COUNT) % COUNT ))
+fi
+${SWITCH} "\$SYS" "\$NEXT"
+NAVEOF
+  chmod +x "$NAVTMP"
+
+  tmux bind-key -n h     run-shell "$NAVTMP prev h"
+  tmux bind-key -n l     run-shell "$NAVTMP next l"
+  tmux bind-key -n Left  run-shell "$NAVTMP prev Left"
+  tmux bind-key -n Right run-shell "$NAVTMP next Right"
 
   tmux select-window -t "$SESSION:0"
   tmux select-pane -t "$SESSION":0.0
@@ -892,7 +620,7 @@ KILLEOF
   tmux attach -t "$SESSION"
 }
 
-devclose() {
+function devclose() {
   local SESSION
   SESSION=$(tmux display-message -p '#S' 2>/dev/null)
   if [ -z "$SESSION" ]; then
@@ -901,13 +629,12 @@ devclose() {
   fi
   echo "devclose: closing session '$SESSION' and cleaning up..."
   rm -f \
-    "/tmp/devopen-rtags-${SESSION}.sh" \
-    "/tmp/devopen-btags-${SESSION}.sh" \
+    "/tmp/devopen-tabrender-${SESSION}.sh" \
+    "/tmp/devopen-tabnav-${SESSION}.sh" \
     "/tmp/devopen-rtabs-${SESSION}.cache" \
     "/tmp/devopen-btabs-${SESSION}.cache" \
     "/tmp/devopen-new-${SESSION}.sh" \
-    "/tmp/devopen-jump-${SESSION}.sh" \
-    "/tmp/devopen-kill-${SESSION}.sh" \
+    "/tmp/devopen-tabpick-${SESSION}.sh" \
     "/tmp/devopen-switch-${SESSION}.sh" \
     "/tmp/devopen-detect-${SESSION}.sh"
   rm -f /tmp/devopen-cmd-* /tmp/devopen-sel-*
@@ -915,7 +642,7 @@ devclose() {
   tmux unbind-key -n l     2>/dev/null
   tmux unbind-key -n Left  2>/dev/null
   tmux unbind-key -n Right 2>/dev/null
-  for i in 1 2 3 4 5 6 7 8 9; do
+  for i in {1..9}; do
     tmux unbind-key -n "M-$i" 2>/dev/null
   done
   tmux unbind-key -T prefix T 2>/dev/null
