@@ -596,17 +596,19 @@ printf "%s\n" "\$CMD" > "\$TMPFILE"
 NEWEOF
   chmod +x "$NEW_SCRIPT"
 
-  # --- Jump script (unified: shows all tabs from both panes) ---
+  # --- Jump script (unified: shows all tabs from both panes + plain panes) ---
   local JUMP_SCRIPT="/tmp/devopen-jump-${SESSION}.sh"
   cat > "$JUMP_SCRIPT" << JUMPEOF
 #!/bin/sh
 RTABCACHE="${RTABCACHE}"
 BTABCACHE="${BTABCACHE}"
 SESSION="${SESSION}"
-# Build unified list: "system:idx marker cmd"
 COMBINED=""
-RCUR=\$(tmux show-environment -t "\$SESSION" DEVOPEN_RTAB 2>/dev/null | cut -d= -f2)
-BCUR=\$(tmux show-environment -t "\$SESSION" DEVOPEN_BTAB 2>/dev/null | cut -d= -f2)
+# Plain panes (no tab system) — just select the pane directly
+# pane 0 = nvim
+CMD=\$(tmux display-message -p -t "\${SESSION}:0.0" "#{pane_current_command}" 2>/dev/null | cut -c1-8)
+COMBINED="\${COMBINED}pane:0 pane:0 * \${CMD}\n"
+# Add right tabs
 while IFS= read -r line; do
   [ -z "\$line" ] && continue
   IDX=\$(echo "\$line" | awk '{print \$1}')
@@ -614,6 +616,7 @@ while IFS= read -r line; do
   REST=\$(echo "\$line" | cut -d' ' -f2-)
   COMBINED="\${COMBINED}right:\${IDX} right:\${NUM} \${REST}\n"
 done < "\$RTABCACHE"
+# Add bottom tabs
 while IFS= read -r line; do
   [ -z "\$line" ] && continue
   IDX=\$(echo "\$line" | awk '{print \$1}')
@@ -761,17 +764,20 @@ KILLEOF
     tmux display-message \"[\$(( PREV + 1 ))/\$NEWCOUNT] \$CMD\"
   "
 
-  # --- prefix+G: fzf jump (unified, all tabs) ---
+  # --- prefix+G: fzf jump (unified, all tabs + plain panes) ---
   tmux bind-key -T prefix G run-shell "
     SESSION=\$(tmux display-message -p '#S')
     TMPFILE=\$(mktemp /tmp/devopen-sel-XXXX)
     tmux popup -E -w 50 -h 20 \"TMPFILE=\$TMPFILE ${JUMP}\"
     SYS=\$(sed -n '1p' \$TMPFILE); IDX=\$(sed -n '2p' \$TMPFILE); rm -f \$TMPFILE
     [ -z \"\$SYS\" ] || [ -z \"\$IDX\" ] && exit 0
-    ${SWITCH} \$SYS \$IDX
-    if [ \"\$SYS\" = \"right\" ]; then
+    if [ \"\$SYS\" = \"pane\" ]; then
+      tmux select-pane -t \"\${SESSION}:0.\${IDX}\"
+    elif [ \"\$SYS\" = \"right\" ]; then
+      ${SWITCH} right \$IDX
       tmux select-pane -t \"\${SESSION}:0.4\"
     else
+      ${SWITCH} bottom \$IDX
       tmux select-pane -t \"\${SESSION}:0.2\"
     fi
   "
