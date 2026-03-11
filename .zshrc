@@ -201,185 +201,101 @@ bwsync() {
   bw sync && echo "🔄 Vault synced"
 }
 
-# ─── kdash — terminal calendar dashboard ─────────────────────────────────────
-# Add this to your ~/.zshrc
-# Usage: kdash
+# =============================================================================
+# now — compact event dashboard (today's calendar events via khal)
+# =============================================================================
+#
+# Displays today's events from khal in a compact single-column format.
+# Designed to run inside the devopen workspace dash pane (dcont=6) on a loop,
+# refreshing every 60 seconds. Can also be called standalone: `now`
+#
+# Calendar color coding (matches khal calendar names):
+#   google   → blue    familia → pink    festivos → green
+#   daruma   → orange  allaria → cyan
+#
+# Dependencies: khal
+# =============================================================================
 
-function kdash() {
-  local reset="\033[0m"
-  local bold="\033[1m"
-  local dim="\033[2m"
-  local italic="\033[3m"
-  local white="\033[97m"
-  local gray="\033[38;5;245m"
-  local accent="\033[38;5;116m"
-  local accent_bold="\033[1;38;5;116m"
-  local border="\033[38;5;238m"
-  local muted="\033[38;5;240m"
+now() {
+  local ESC=$'\033'
+  local reset="${ESC}[0m"
+  local bold="${ESC}[1m"
+  local dim="${ESC}[2m"
+  local italic="${ESC}[3m"
+  local gray="${ESC}[38;5;245m"
+  local muted="${ESC}[38;5;240m"
+  local white="${ESC}[97m"
+
+  # Calendar-specific colors and icons
+  local -A cal_color=(
+    [google]="${ESC}[38;5;75m"
+    [familia]="${ESC}[38;5;213m"
+    [festivos]="${ESC}[38;5;120m"
+    [daruma]="${ESC}[38;5;215m"
+    [allaria]="${ESC}[38;5;159m"
+  )
+  local -A cal_icon=(
+    [google]="󰊫"
+    [familia]="󰉌"
+    [festivos]="󰃦"
+    [daruma]="󰃯"
+    [allaria]="󰃯"
+  )
+  local default_color="$white"
+  local default_icon="󰃯"
 
   local now_int=$(date "+%H%M")
-  local today_num=$(date "+%-d")
-  local pad="  "
 
-  local color_google="\033[38;5;75m"
-  local color_familia="\033[38;5;213m"
-  local color_festivos="\033[38;5;120m"
-  local color_daruma="\033[38;5;215m"
-  local color_allaria="\033[38;5;159m"
-  local color_default="\033[97m"
-
-  local icon_google="󰊫"
-  local icon_familia="󰉌"
-  local icon_festivos="󰃦"
-  local icon_daruma="󰃯"
-  local icon_allaria="󰃯"
-  local icon_default="󰃯"
-
-  local cal_w=22
-  local right_w=38
-  local i=0
-
-  # ── build left panel: mini calendar ──────────────────────────────────────────
-  local -a left_lines
-  local lnum=0
-  while IFS= read -r line; do
-    if (( lnum == 0 )); then
-      local mh_len=${#line}
-      local mh_pad=$(( (cal_w - mh_len) / 2 ))
-      local mh_sp=""
-      i=0; while (( i < mh_pad )); do mh_sp+=" "; (( i++ )); done
-      left_lines+=("${mh_sp}${accent_bold}${line}${reset}")
-    elif (( lnum == 1 )); then
-      left_lines+=("${gray}${line}${reset}")
-    else
-      # manually highlight today_num as a word in the line
-      local before="" after="" found=0
-      local rest="$line"
-      local styled=""
-      while [[ -n "$rest" ]]; do
-        # try to match leading spaces + today_num as a number token
-        if [[ "$rest" =~ ^([[:space:]]*)([0-9]+)(.*) ]]; then
-          local spaces="${match[1]}"
-          local num="${match[2]}"
-          local tail="${match[3]}"
-          if [[ "$num" == "$today_num" ]]; then
-            styled+="${spaces}${reset}${bold}${accent}${num}${reset}${dim}"
-          else
-            styled+="${spaces}${num}"
-          fi
-          rest="$tail"
-        else
-          # non-numeric char, pass through
-          styled+="${rest[1]}"
-          rest="${rest:1}"
-        fi
-      done
-      left_lines+=("${dim}${styled}${reset}")
-    fi
-    (( lnum++ ))
-  done <<< "$(cal)"
-
-  # ── build right panel ─────────────────────────────────────────────────────────
-  local -a right_lines
-
-  local day_name=$(date "+%A")
-  local day_num=$(date "+%d")
-  local month_year=$(date "+%B %Y")
-  local time_now=$(date "+%H:%M")
-  local location="Buenos Aires"
-  right_lines+=("${muted}󰍎 ${reset}${dim}${location}${reset}  ${accent_bold}󰃭${reset}  ${bold}${white}${day_name}${reset}  ${muted}·${reset}  ${accent_bold}${day_num}${reset}  ${gray}${month_year}${reset}  ${muted}·${reset}  ${accent}${time_now}${reset}")
-
-  local rdiv=""
-  i=0; while (( i < right_w )); do rdiv+="─"; (( i++ )); done
-  right_lines+=("${border}${rdiv}${reset}")
-
-  # weather
-  local weather_cache="/tmp/kdash_weather"
-  if [[ ! -f "$weather_cache" ]] || (( $(date +%s) - $(date -r "$weather_cache" +%s 2>/dev/null || echo 0) > 1800 )); then
-    (curl -sf "wttr.in/Buenos+Aires?format=%c+%t+feels+%f+·+%h+hum+·+%w" > "$weather_cache" 2>/dev/null &)
-  fi
-
-  local weather=""
-  [[ -f "$weather_cache" ]] && weather=$(cat "$weather_cache")
-
-  if [[ -n "$weather" ]]; then
-    local w_icon w_temp w_feels w_hum w_wind
-    w_icon=$(echo "$weather" | grep -oP '^\S+')
-    w_temp=$(echo "$weather" | grep -oP '[+-]\d+°C' | head -1)
-    w_feels=$(echo "$weather" | grep -oP '[+-]\d+°C' | tail -1)
-    w_hum=$(echo "$weather" | grep -oP '\d+%')
-    w_wind=$(echo "$weather" | grep -oP '[↖↗↘↙←→↑↓]\d+km/h')
-    right_lines+=("")
-    right_lines+=("${white}${w_icon}${reset}  ${accent_bold}${w_temp}${reset}  ${dim}feels${reset} ${gray}${w_feels}${reset}  ${muted}·${reset}  ${accent}${w_hum}${reset} ${dim}hum${reset}  ${muted}·${reset}  ${gray}${w_wind}${reset}")
-    right_lines+=("")
-    right_lines+=("${border}${rdiv}${reset}")
-  fi
-
-  # events
+  # Events from khal
   local raw_events
   raw_events=$(khal list today --format "{start-time}|{end-time}|{title}|{calendar}" 2>/dev/null)
 
   if [[ -z "$raw_events" ]]; then
-    right_lines+=("")
-    right_lines+=("  ${muted}${italic}no events today${reset}")
-  else
-    local -A seen_events
-    while IFS='|' read -r start end title calendar; do
-      [[ "$start" =~ ^(Today|Tomorrow|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|Lunes|Martes|Miercoles|Jueves|Viernes|Sabado|Domingo) ]] && continue
-      [[ -z "$title" ]] && continue
-      local event_key="${start}|${title}"
-      [[ -n "${seen_events[$event_key]}" ]] && continue
-      seen_events[$event_key]=1
-
-      local color="$color_default" icon="$icon_default"
-      case "$calendar" in
-        google)   color="$color_google";   icon="$icon_google"   ;;
-        familia)  color="$color_familia";  icon="$icon_familia"  ;;
-        festivos) color="$color_festivos"; icon="$icon_festivos" ;;
-        daruma)   color="$color_daruma";   icon="$icon_daruma"   ;;
-        allaria)  color="$color_allaria";  icon="$icon_allaria"  ;;
-      esac
-
-      local cal_label="${calendar:-?}"
-      local time_style="" title_style="$white"
-      local eline=""
-
-      if [[ -z "$start" ]]; then
-        eline=$(printf "${color}${icon}${reset}  ${gray}%-10s${reset}  ${dim}all day${reset}  ${bold}${white}%s${reset}" "$cal_label" "$title")
-      else
-        local start_int=${start//:/}
-        local end_int=2359
-        [[ -n "$end" ]] && end_int=${end//:/}
-        if (( start_int < now_int )); then
-          time_style="$dim"; title_style="$dim"
-        fi
-        if (( start_int <= now_int && now_int <= end_int )); then
-          time_style=""; title_style="$white"
-        fi
-        eline=$(printf "${color}${icon}${reset}  ${gray}%-10s${reset}  ${time_style}${color}${bold}%s${reset}${time_style} → %s${reset}  ${title_style}%s${reset}" "$cal_label" "$start" "$end" "$title")
-      fi
-      right_lines+=("$eline")
-    done <<< "$raw_events"
+    printf "  ${muted}${italic}no events today${reset}\n\n"
+    return
   fi
 
-  # ── render side by side ───────────────────────────────────────────────────────
-  local total=$(( ${#left_lines[@]} > ${#right_lines[@]} ? ${#left_lines[@]} : ${#right_lines[@]} ))
-  local sep="  ${border}│${reset}  "
+  local -A seen
+  local printed=0
+  while IFS='|' read -r start end title calendar; do
+    # Skip header lines khal emits (day names)
+    [[ "$start" =~ ^(Today|Tomorrow|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Lun|Mar|Mie|Jue|Vie|Sab|Dom) ]] && continue
+    [[ -z "$title" ]] && continue
+    local key="${start}|${title}"
+    [[ -n "${seen[$key]}" ]] && continue
+    seen[$key]=1
 
-  echo ""
-  for (( row=1; row<=total; row++ )); do
-    local left="${left_lines[$row]:-}"
-    local right="${right_lines[$row]:-}"
-    [[ -z "$left" && -z "$right" ]] && continue
+    local color="${cal_color[$calendar]:-$default_color}"
+    local icon="${cal_icon[$calendar]:-$default_icon}"
+    local cal_label="${calendar:-?}"
 
-    local ln=$(printf '%b' "$left" | sed 's/\x1b\[[0-9;]*m//g' | tr -d '\n' | wc -m)
-    local lp=""
-    i=0; while (( i < cal_w - ln + 1 )); do lp+=" "; (( i++ )); done
+    if [[ -z "$start" ]]; then
+      # All-day event
+      printf " %s%s${reset} ${gray}%s${reset} ${dim}all day${reset} ${bold}${white}%s${reset}\n" \
+        "$color" "$icon" "$cal_label" "$title"
+    else
+      local start_int=${start//:/}
+      local end_int=${end//:/}
+      local time_style="" title_style="$white"
 
-    echo -e "${pad}${left}${lp}${sep}${right}"
-  done
+      # Dim past events; full brightness for ongoing ones
+      if (( start_int < now_int )); then
+        time_style="$dim"; title_style="$dim"
+      fi
+      if (( start_int <= now_int && now_int <= end_int )); then
+        time_style=""; title_style="$white"
+      fi
 
-  echo ""
+      printf " %s%s${reset} ${gray}%s${reset} %s%s${bold}%s${reset}%s/%s${reset} %s%s${reset}\n" \
+        "$color" "$icon" "$cal_label" \
+        "$time_style" "$color" "$start" "$time_style" "$end" \
+        "$title_style" "$title"
+    fi
+    (( printed++ ))
+  done <<< "$raw_events"
+
+  [[ $printed -eq 0 ]] && printf " ${muted}${italic}no events today${reset}\n"
+  printf "\n"
 }
 
 # =============================================================================
@@ -393,13 +309,13 @@ function kdash() {
 # LAYOUT (pane indices in window 0)
 #
 #   ┌─────────────────────┬──────────┐
-#   │                     │  rbar  3 │  right tab-bar     (2 rows, full height)
+#   │                     │  rbar  3 │  right tab-bar     (2 rows)
 #   │       nvim  0       ├──────────┤
-#   │                     │ rcont  4 │  right tab-content (full height)
-#   ├─────────────────────┤          │
-#   │  bbar  1            │          │  bottom tab-bar    (nvim-width, 2 rows)
-#   ├─────────────────────┤          │
-#   │  bcont 2            │          │  bottom tab-content (nvim-width)
+#   │                     │ rcont  4 │  right tab-content (claude/lazygit/lazydocker)
+#   ├─────────────────────┼──────────┤
+#   │  bbar  1            │  dbar  5 │  dash tab-bar      (2 rows)
+#   ├─────────────────────┼──────────┤
+#   │  bcont 2            │ dcont  6 │  dash content      (now dashboard)
 #   └─────────────────────┴──────────┘
 #
 # TAB SYSTEM
@@ -415,6 +331,8 @@ function kdash() {
 #     window 1  (tabs-right)   — inactive right tabs
 #     window 2  (tabs-bottom)  — inactive bottom tabs
 #
+#   The dash panel (panes 5+6) has no tab system — it runs `now` on a loop.
+#
 # TMUX ENVIRONMENT VARIABLES (per session)
 #   DEVOPEN_RTAB        0-based index of the currently active right tab
 #   DEVOPEN_RTAB_COUNT  total number of right tabs
@@ -427,12 +345,13 @@ function kdash() {
 #   prefix+T        cycle to next tab (context-aware: right or bottom)
 #   prefix+N        open a new tab with optional command prompt
 #   prefix+X        kill the current tab (refuses if last tab)
+#   prefix+C        toggle calendar pane (collapse/expand, remembers last height)
 #   prefix+G        fzf picker — jump to any tab or plain pane; focuses it
 #   prefix+D        fzf picker — kill any inactive tab
 #   h / ← / l / →  prev/next tab (only active on tab-bar panes 1 and 3)
 #   Alt+1..9        jump to tab N by number (context-aware)
 #
-# DEPENDENCIES: nvim, claude, lazygit, lazydocker, fzf
+# DEPENDENCIES: nvim, claude, lazygit, lazydocker, fzf, khal, vdirsyncer
 # =============================================================================
 
 devopen() {
@@ -454,7 +373,7 @@ devopen() {
   # Dependency check
   # ---------------------------------------------------------------------------
   local dep
-  for dep in nvim claude lazygit lazydocker fzf; do
+  for dep in nvim claude lazygit lazydocker fzf khal vdirsyncer; do
     command -v "$dep" &>/dev/null || { echo "devopen: missing dependency: $dep"; return 1; }
   done
 
@@ -464,6 +383,7 @@ devopen() {
   local TMP="/tmp/devopen-${SESSION}"
   local RBAR_SCRIPT="${TMP}-rbar.sh"       # right tab-bar renderer
   local BBAR_SCRIPT="${TMP}-bbar.sh"       # bottom tab-bar renderer
+  local DBAR_SCRIPT="${TMP}-dbar.sh"       # dash bar renderer (static label)
   local RCACHE="${TMP}-rtabs.cache"        # right tab fzf cache
   local BCACHE="${TMP}-btabs.cache"        # bottom tab fzf cache
   local SWITCH_SCRIPT="${TMP}-switch.sh"   # tab switch logic
@@ -475,24 +395,41 @@ devopen() {
   # Build layout — splits must be done in strict top-left→bottom-right order
   # so tmux pane numbering remains predictable (renumbers by screen position).
   #
-  #   Step 1: split right column off pane 0 at full terminal height
-  #   Step 2: split bottom strip off pane 0 (left column only)
-  #   Step 3: subdivide bottom strip into bbar + bcont
-  #   Step 4: subdivide right column into rbar + rcont
+  # Target (pane indices after all splits):
+  #   0 = nvim        (left, tall)
+  #   1 = bbar        (bottom-left, 2 rows)
+  #   2 = bcont       (bottom-left content)
+  #   3 = rbar        (top-right, 2 rows)
+  #   4 = rcont       (top-right content)
+  #   5 = dbar        (bottom-right, 2 rows)
+  #   6 = dcont       (bottom-right content — now dashboard)
+  #
+  # Split sequence:
+  #   s1: pane 0 → right column full height     (0=left, 1=right)
+  #   s2: pane 0 → bottom-left strip            (0=nvim, 1=bot-left, 2=right)
+  #   s3: pane 1 → bbar + bcont                 (1=bbar, 2=bcont, 3=right)
+  #   s4: pane 3 → top-right + bottom-right     (3=top-right, 4=bot-right)
+  #   s5: pane 3 → rbar + rcont                 (3=rbar, 4=rcont, 5=bot-right)
+  #   s6: pane 5 → dbar + dcont                 (5=dbar, 6=dcont)
   # ---------------------------------------------------------------------------
   tmux new-session -d -s "$SESSION" -c "$DIR" -x "$(tput cols)" -y "$(tput lines)"
-  tmux split-window -h -p 25 -t "$SESSION":0.0 -c "$DIR"   # → pane 0=left, 1=right
+  tmux split-window -h -p 25 -t "$SESSION":0.0 -c "$DIR"   # s1 → 0=left,  1=right
   tmux select-pane  -t "$SESSION":0.0
-  tmux split-window -v -p 30 -t "$SESSION":0.0 -c "$DIR"   # → 0=nvim, 1=bot-left, 2=right
+  tmux split-window -v -p 30 -t "$SESSION":0.0 -c "$DIR"   # s2 → 0=nvim,  1=bot-left, 2=right
   tmux select-pane  -t "$SESSION":0.1
-  tmux split-window -v -p 90 -t "$SESSION":0.1 -c "$DIR"   # → 1=bbar, 2=bcont, 3=right
+  tmux split-window -v -p 90 -t "$SESSION":0.1 -c "$DIR"   # s3 → 1=bbar,  2=bcont, 3=right
   tmux select-pane  -t "$SESSION":0.3
-  tmux split-window -v -p 90 -t "$SESSION":0.3 -c "$DIR"   # → 3=rbar, 4=rcont
+  tmux split-window -v -p 30 -t "$SESSION":0.3 -c "$DIR"   # s4 → 3=top-r, 4=bot-r
+  tmux select-pane  -t "$SESSION":0.3
+  tmux split-window -v -p 90 -t "$SESSION":0.3 -c "$DIR"   # s5 → 3=rbar,  4=rcont, 5=bot-r
+  tmux select-pane  -t "$SESSION":0.5
+  tmux split-window -v -p 90 -t "$SESSION":0.5 -c "$DIR"   # s6 → 5=dbar,  6=dcont
 
   # Launch initial programs into their panes
   tmux send-keys -t "$SESSION":0.0 "nvim \"$FILE\"" Enter
   tmux send-keys -t "$SESSION":0.4 "clear && claude" Enter
   tmux send-keys -t "$SESSION":0.2 "clear && zsh" Enter
+  tmux send-keys -t "$SESSION":0.6 "while true; do clear && now; sleep 60; done" Enter
 
   # ---------------------------------------------------------------------------
   # Shelf windows — hold inactive tabs off-screen
@@ -549,7 +486,6 @@ TABCACHE="${TABCACHE}"
 RESET="${ESC}[0m"
 ACTIVE="${ESC}[38;5;141m"    # purple — active tab label
 INACTIVE="${ESC}[38;5;248m"  # grey   — inactive tab label
-CLEAR="${ESC}[H${ESC}[2J"
 SEP="  "
 
 while tmux has-session -t "\$SESSION" 2>/dev/null; do
@@ -576,7 +512,7 @@ while tmux has-session -t "\$SESSION" 2>/dev/null; do
     fi
   done
 
-  printf "%s %s\n" "\$CLEAR" "\$LINE"
+  printf "\033[1;1H\033[K %b\033[K" "\$LINE"
   printf "%b" "\$CACHE" > "\$TABCACHE"
   sleep 0.1
 done
@@ -594,6 +530,53 @@ EOF
 
   tmux send-keys -t "$SESSION":0.3 "$RBAR_SCRIPT" Enter
   tmux send-keys -t "$SESSION":0.1 "$BBAR_SCRIPT" Enter
+
+  # ---------------------------------------------------------------------------
+  # Dash bar renderer (pane 5) — shows "● 1:calendar" label.
+  # Polls khal every 30s; appends 󰃯 if any event ends within 5 minutes,
+  # so the user knows to open the pane even when dcont is collapsed.
+  # ---------------------------------------------------------------------------
+  # Dash bar renderer (pane 5) — shows "● 1:calendar" label.
+  # Redraws every 1s so it recovers instantly after a resize.
+  # Polls khal every 30s to check if any event ends within 5 minutes;
+  # appends 󰃯 in orange when so.
+  # ---------------------------------------------------------------------------
+  local ESC_D=$'\033'
+  cat > "$DBAR_SCRIPT" << EOF
+#!/bin/bash
+SESSION="${SESSION}"
+ACTIVE="${ESC_D}[38;5;141m"
+RESET="${ESC_D}[0m"
+
+SOON=""
+LAST_POLL=0
+
+while tmux has-session -t "\$SESSION" 2>/dev/null; do
+  NOW_S=\$(date "+%s")
+  NOW=\$(date "+%H%M")
+
+  # Poll khal every 30 seconds
+  if (( NOW_S - LAST_POLL >= 30 )); then
+    LAST_POLL=\$NOW_S
+    SOON=""
+    while IFS='|' read -r start end title rest; do
+      [ -z "\$end" ] && continue
+      END_INT=\$(echo "\$end" | tr -d ':')
+      echo "\$END_INT" | grep -qE '^[0-9]{4}$' || continue
+      DIFF=\$(( END_INT - NOW ))
+      if [ "\$DIFF" -ge 0 ] && [ "\$DIFF" -le 5 ]; then
+        SOON=" ${ESC_D}[38;5;215m󰃯${ESC_D}[0m"
+        break
+      fi
+    done <<< "\$(khal list today --format '{start-time}|{end-time}|{title}|{calendar}' 2>/dev/null)"
+  fi
+
+  printf "\r%s● 1:calendar%s%s\033[K" "\$ACTIVE" "\$RESET" "\$SOON"
+  sleep 1
+done
+EOF
+  chmod +x "$DBAR_SCRIPT"
+  tmux send-keys -t "$SESSION":0.5 "$DBAR_SCRIPT" Enter
 
   # ---------------------------------------------------------------------------
   # Switch script — moves a logical tab into the content pane.
@@ -689,6 +672,9 @@ COMBINED=""
 CMD=\$(tmux display-message -p -t "\${SESSION}:0.0" "#{pane_current_command}" 2>/dev/null | cut -c1-8)
 COMBINED="\${COMBINED}pane:0 pane:0 * \${CMD}\n"
 
+# Dash pane (pane 6) — now dashboard, no tab system
+COMBINED="\${COMBINED}pane:6 pane:6 * calendar\n"
+
 # Right tabs — sourced from renderer cache
 while IFS= read -r line; do
   [ -z "\$line" ] && continue
@@ -763,7 +749,10 @@ printf "%s\n%s\n" "\$SYS" "\$IDX" > "\$TMPFILE"
 EOF
   chmod +x "$KILL_SCRIPT"
 
-  # Capture script paths for use inside bind-key run-shell strings
+  # Bake the actual dcont pane id at session creation time for reliable targeting
+  local DCONT_ID
+  DCONT_ID=$(tmux display-message -p -t "$SESSION:0.6" "#{pane_id}")
+  tmux set-environment -t "$SESSION" DEVOPEN_DCONT_ID "$DCONT_ID"
   local SWITCH="$SWITCH_SCRIPT"
   local NEW="$NEW_SCRIPT"
   local JUMP="$JUMP_SCRIPT"
@@ -875,8 +864,22 @@ EOF
     tmux popup -E -w 50 -h 20 \"TMPFILE=\$TMPFILE ${JUMP}\"
     SYS=\$(sed -n '1p' \$TMPFILE); IDX=\$(sed -n '2p' \$TMPFILE); rm -f \$TMPFILE
     [ -z \"\$SYS\" ] || [ -z \"\$IDX\" ] && exit 0
+    IDX=\$(echo \"\$IDX\" | tr -d '[:space:]')
     case \"\$SYS\" in
-      pane)   tmux select-pane -t \"${SESSION}:0.\${IDX}\" ;;
+      pane)
+        # If jumping to dcont (pane 6) and it's collapsed, expand it first
+        if [ \"\$IDX\" = \"6\" ]; then
+          COLLAPSED=\$(tmux show-environment -t \$SESSION DEVOPEN_DCONT_COLLAPSED 2>/dev/null | cut -d= -f2)
+          if [ \"\$COLLAPSED\" = \"1\" ]; then
+            SAVED=\$(tmux show-environment -t \$SESSION DEVOPEN_DCONT_H 2>/dev/null | cut -d= -f2)
+            [ -z \"\$SAVED\" ] && SAVED=10
+            tmux resize-pane -t '${SESSION}:0.6' -y \"\$SAVED\"
+            tmux resize-pane -t '${SESSION}:0.5' -y 2
+            tmux respawn-pane -k -t '${SESSION}:0.5' '${DBAR_SCRIPT}'
+            tmux set-environment -t \$SESSION DEVOPEN_DCONT_COLLAPSED 0
+          fi
+        fi
+        tmux select-pane -t \"${SESSION}:0.\${IDX}\" ;;
       right)  ${SWITCH} right  \$IDX; tmux select-pane -t \"${SESSION}:0.4\" ;;
       bottom) ${SWITCH} bottom \$IDX; tmux select-pane -t \"${SESSION}:0.2\" ;;
     esac
@@ -919,7 +922,7 @@ EOF
     tmux display-message \"Killed \$SYS tab \$(( IDX + 1 )) [\$NEWCOUNT left]\"
   "
 
-  # Alt+1..9 — jump to tab by number (context-aware)
+  # Alt+1..9 — jump to tab by number (context-aware; pass-through on dash pane)
   local i
   for i in 1 2 3 4 5 6 7 8 9; do
     local IDX=$(( i - 1 ))
@@ -933,7 +936,31 @@ EOF
     "
   done
 
-  # h/← and l/→ — prev/next tab, only when focused on a tab-bar pane (1 or 3)
+  # prefix+C — toggle dcont (pane 6). Uses DEVOPEN_DCONT_COLLAPSED flag (1/0)
+  # so the collapsed state is always known reliably without querying pane height.
+  tmux set-environment -t "$SESSION" DEVOPEN_DCONT_H 10
+  tmux set-environment -t "$SESSION" DEVOPEN_DCONT_COLLAPSED 1
+  tmux bind-key -T prefix C run-shell "
+    SESSION=\$(tmux display-message -p '#S')
+    COLLAPSED=\$(tmux show-environment -t \$SESSION DEVOPEN_DCONT_COLLAPSED 2>/dev/null | cut -d= -f2)
+    if [ \"\$COLLAPSED\" = \"1\" ]; then
+      SAVED=\$(tmux show-environment -t \$SESSION DEVOPEN_DCONT_H 2>/dev/null | cut -d= -f2)
+      [ -z \"\$SAVED\" ] && SAVED=10
+      tmux resize-pane -t '${SESSION}:0.6' -y \"\$SAVED\"
+      tmux resize-pane -t '${SESSION}:0.5' -y 2
+      tmux respawn-pane -k -t '${SESSION}:0.5' '${DBAR_SCRIPT}'
+      tmux set-environment -t \$SESSION DEVOPEN_DCONT_COLLAPSED 0
+    else
+      CUR_H=\$(tmux display-message -p -t '${SESSION}:0.6' '#{pane_height}')
+      tmux set-environment -t \$SESSION DEVOPEN_DCONT_H \"\$CUR_H\"
+      tmux resize-pane -t '${SESSION}:0.6' -y 0
+      tmux resize-pane -t '${SESSION}:0.5' -y 2
+      tmux resize-pane -t '${SESSION}:0.4' -y 9999
+      tmux respawn-pane -k -t '${SESSION}:0.5' '${DBAR_SCRIPT}'
+      tmux set-environment -t \$SESSION DEVOPEN_DCONT_COLLAPSED 1
+    fi
+  "
+
   # Falls through to send the literal key otherwise (so nvim is unaffected).
   _devopen_bind_nav() {
     local KEY="$1" DIR="$2" OP="$3"
@@ -961,10 +988,14 @@ EOF
   # ---------------------------------------------------------------------------
   tmux select-window -t "$SESSION:0"
   tmux select-pane   -t "$SESSION:0.0"
-  # Resize in background after a short delay to let panes settle
+  # Resize in background after a short delay to let panes settle.
+  # dcont (pane 6) starts collapsed — pane 4 claims the freed space.
   ( sleep 0.2
     tmux resize-pane -t "$SESSION:0.3" -y 2
     tmux resize-pane -t "$SESSION:0.1" -y 2
+    tmux resize-pane -t "$SESSION:0.6" -y 0
+    tmux resize-pane -t "$SESSION:0.5" -y 2
+    tmux resize-pane -t "$SESSION:0.4" -y 9999
   ) &
   tmux attach -t "$SESSION"
 }
@@ -1004,6 +1035,7 @@ devclose() {
   tmux unbind-key -T prefix X 2>/dev/null
   tmux unbind-key -T prefix G 2>/dev/null
   tmux unbind-key -T prefix D 2>/dev/null
+  tmux unbind-key -T prefix C 2>/dev/null
 
   tmux kill-session -t "$SESSION"
 }
