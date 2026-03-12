@@ -438,6 +438,131 @@ TABPICKEOF
   local JUMP="${JUMP_SCRIPT}"
   local KILL="${KILL_SCRIPT}"
 
+  # --- tabnew: new tab script ---
+  local TABNEW="/tmp/devopen-tabnew-${SESSION}.sh"
+  cat > "$TABNEW" << TABNEWEOF
+#!/bin/zsh
+SESSION=\$(tmux display-message -p '#S')
+PANE=\$(tmux display-message -p '#{pane_index}')
+case "\$PANE" in
+  3|4) EC=DEVOPEN_RTAB_COUNT; ET=DEVOPEN_RTAB; EM=DEVOPEN_RMAP; CONTENT="\${SESSION}:0.4"; SHELF="\${SESSION}:1" ;;
+  1|2) EC=DEVOPEN_BTAB_COUNT; ET=DEVOPEN_BTAB; EM=DEVOPEN_BMAP; CONTENT="\${SESSION}:0.2"; SHELF="\${SESSION}:2" ;;
+  *) exit 0 ;;
+esac
+TMPFILE=\$(mktemp /tmp/devopen-cmd-XXXX)
+tmux popup -E -w 40 -h 3 "TMPFILE=\$TMPFILE ${NEW_SCRIPT}"
+CMD=\$(cat \$TMPFILE); rm -f \$TMPFILE
+COUNT=\$(tmux show-environment -t "\$SESSION" "\$EC" | cut -d= -f2)
+MAP=\$(tmux show-environment -t "\$SESSION" "\$EM" | cut -d= -f2)
+DIR=\$(tmux display-message -p -t "\$CONTENT" '#{pane_current_path}')
+tmux split-window -t "\$SHELF" -h -c "\$DIR"
+NEW_SHELF_SLOT=\$(( COUNT - 1 ))
+tmux swap-pane -s "\$CONTENT" -t "\${SHELF}.\${NEW_SHELF_SLOT}"
+NEWCOUNT=\$(( COUNT + 1 ))
+tmux set-environment -t "\$SESSION" "\$EC" \$NEWCOUNT
+tmux set-environment -t "\$SESSION" "\$ET" \$COUNT
+CUR_IDX=\$(tmux show-environment -t "\$SESSION" "\$ET" | cut -d= -f2)
+NEW_MAP=\$(echo "\${MAP}:\${NEW_SHELF_SLOT}" | tr ':' '\n' | awk -v cur="\$CUR_IDX" -v slot="\$NEW_SHELF_SLOT" 'NR==cur+1{print slot; next}{print}' | tr '\n' ':' | sed 's/:\$//')
+NEW_MAP="\${NEW_MAP}:-"
+tmux set-environment -t "\$SESSION" "\$EM" "\$NEW_MAP"
+tmux select-pane -t "\$CONTENT"
+[ -n "\$CMD" ] && tmux send-keys -t "\$CONTENT" "\$CMD" Enter
+tmux display-message "[\$NEWCOUNT/\$NEWCOUNT] zsh"
+TABNEWEOF
+  chmod +x "$TABNEW"
+
+  # --- tabkillcur: kill active tab script ---
+  local TABKILLCUR="/tmp/devopen-tabkillcur-${SESSION}.sh"
+  cat > "$TABKILLCUR" << TABKILLCUREOF
+#!/bin/zsh
+SESSION=\$(tmux display-message -p '#S')
+PANE=\$(tmux display-message -p '#{pane_index}')
+case "\$PANE" in
+  3|4) ET=DEVOPEN_RTAB; EC=DEVOPEN_RTAB_COUNT; EM=DEVOPEN_RMAP; CONTENT="\${SESSION}:0.4"; SHELF="\${SESSION}:1" ;;
+  1|2) ET=DEVOPEN_BTAB; EC=DEVOPEN_BTAB_COUNT; EM=DEVOPEN_BMAP; CONTENT="\${SESSION}:0.2"; SHELF="\${SESSION}:2" ;;
+  *) exit 0 ;;
+esac
+COUNT=\$(tmux show-environment -t "\$SESSION" "\$EC" | cut -d= -f2)
+CUR=\$(tmux show-environment -t "\$SESSION" "\$ET" | cut -d= -f2)
+[ "\$COUNT" -le 1 ] && tmux display-message 'Cannot close last tab' && exit 0
+MAP=\$(tmux show-environment -t "\$SESSION" "\$EM" | cut -d= -f2)
+PREV=\$(( (CUR - 1 + COUNT) % COUNT ))
+PREV_SHELF=\$(echo "\$MAP" | tr ':' '\n' | sed -n "\$(( PREV + 1 ))p")
+tmux swap-pane -s "\$CONTENT" -t "\${SHELF}.\${PREV_SHELF}"
+tmux kill-pane -t "\${SHELF}.\${PREV_SHELF}"
+NEW_MAP=\$(echo "\$MAP" | tr ':' '\n' | awk -v cur="\$CUR" -v prev="\$PREV" -v slot="\$PREV_SHELF" '
+  NR == prev+1 { next }
+  NR == cur+1  { print "-"; next }
+  { val=\$0+0; if (val > slot) val--; print val }
+' | tr '\n' ':' | sed 's/:\$//')
+NEWCOUNT=\$(( COUNT - 1 ))
+tmux set-environment -t "\$SESSION" "\$EC" \$NEWCOUNT
+tmux set-environment -t "\$SESSION" "\$ET" \$PREV
+tmux set-environment -t "\$SESSION" "\$EM" "\$NEW_MAP"
+tmux select-pane -t "\$CONTENT"
+CMD=\$(tmux display-message -p -t "\$CONTENT" '#{pane_current_command}')
+tmux display-message "[\$(( PREV + 1 ))/\$NEWCOUNT] \$CMD"
+TABKILLCUREOF
+  chmod +x "$TABKILLCUR"
+
+  # --- tabjump: jump via fzf script ---
+  local TABJUMP="/tmp/devopen-tabjump-${SESSION}.sh"
+  cat > "$TABJUMP" << TABJUMPEOF
+#!/bin/zsh
+SESSION=\$(tmux display-message -p '#S')
+TMPFILE=\$(mktemp /tmp/devopen-sel-XXXX)
+tmux popup -E -w 50 -h 20 "TMPFILE=\$TMPFILE ${JUMP_SCRIPT} jump"
+SYS=\$(sed -n '1p' \$TMPFILE); IDX=\$(sed -n '2p' \$TMPFILE); rm -f \$TMPFILE
+[ -z "\$SYS" ] || [ -z "\$IDX" ] && exit 0
+if [ "\$SYS" = "pane" ]; then
+  tmux select-pane -t "\${SESSION}:0.\${IDX}"
+elif [ "\$SYS" = "right" ]; then
+  ${SWITCH_SCRIPT} right "\$IDX"
+  tmux select-pane -t "\${SESSION}:0.4"
+else
+  ${SWITCH_SCRIPT} bottom "\$IDX"
+  tmux select-pane -t "\${SESSION}:0.2"
+fi
+TABJUMPEOF
+  chmod +x "$TABJUMP"
+
+  # --- tabkillfzf: kill tab via fzf script ---
+  local TABKILLFZF="/tmp/devopen-tabkillfzf-${SESSION}.sh"
+  cat > "$TABKILLFZF" << TABKILLFZFEOF
+#!/bin/zsh
+SESSION=\$(tmux display-message -p '#S')
+RCOUNT=\$(tmux show-environment -t "\$SESSION" DEVOPEN_RTAB_COUNT | cut -d= -f2)
+BCOUNT=\$(tmux show-environment -t "\$SESSION" DEVOPEN_BTAB_COUNT | cut -d= -f2)
+[ \$(( RCOUNT + BCOUNT )) -le 2 ] && tmux display-message 'Cannot close last tab in each pane' && exit 0
+TMPFILE=\$(mktemp /tmp/devopen-sel-XXXX)
+tmux popup -E -w 50 -h 20 "TMPFILE=\$TMPFILE ${KILL_SCRIPT} kill"
+SYS=\$(sed -n '1p' \$TMPFILE); IDX=\$(sed -n '2p' \$TMPFILE); rm -f \$TMPFILE
+[ -z "\$SYS" ] || [ -z "\$IDX" ] && exit 0
+if [ "\$SYS" = "right" ]; then
+  ET=DEVOPEN_RTAB; EC=DEVOPEN_RTAB_COUNT; EM=DEVOPEN_RMAP; CONTENT="\${SESSION}:0.4"; SHELF="\${SESSION}:1"
+else
+  ET=DEVOPEN_BTAB; EC=DEVOPEN_BTAB_COUNT; EM=DEVOPEN_BMAP; CONTENT="\${SESSION}:0.2"; SHELF="\${SESSION}:2"
+fi
+COUNT=\$(tmux show-environment -t "\$SESSION" "\$EC" | cut -d= -f2)
+[ "\$COUNT" -le 1 ] && tmux display-message 'Cannot close last tab in this pane' && exit 0
+CUR=\$(tmux show-environment -t "\$SESSION" "\$ET" | cut -d= -f2)
+MAP=\$(tmux show-environment -t "\$SESSION" "\$EM" | cut -d= -f2)
+SHELF_IDX=\$(echo "\$MAP" | tr ':' '\n' | sed -n "\$(( IDX + 1 ))p")
+tmux kill-pane -t "\${SHELF}.\${SHELF_IDX}"
+NEW_MAP=\$(echo "\$MAP" | tr ':' '\n' | awk -v idx="\$IDX" -v slot="\$SHELF_IDX" '
+  NR == idx+1 { next }
+  { val=\$0; if (val != "-" && val+0 > slot) val=val-1; print val }
+' | tr '\n' ':' | sed 's/:\$//')
+NEWCOUNT=\$(( COUNT - 1 ))
+tmux set-environment -t "\$SESSION" "\$EC" \$NEWCOUNT
+NEWCUR=\$CUR
+[ "\$IDX" -lt "\$CUR" ] && NEWCUR=\$(( CUR - 1 ))
+tmux set-environment -t "\$SESSION" "\$ET" \$NEWCUR
+tmux set-environment -t "\$SESSION" "\$EM" "\$NEW_MAP"
+tmux display-message "Killed \$SYS tab \$(( IDX + 1 )) [\$NEWCOUNT left]"
+TABKILLFZFEOF
+  chmod +x "$TABKILLFZF"
+
   # --- prefix+T: cycle next tab ---
   tmux bind-key -T prefix T run-shell "
     SESSION=\$(tmux display-message -p '#S')
@@ -449,124 +574,14 @@ TABPICKEOF
     esac
     COUNT=\$(tmux show-environment -t \$SESSION \$EC | cut -d= -f2)
     CUR=\$(tmux show-environment -t \$SESSION \$ET | cut -d= -f2)
-    NEXT=\$(( (CUR + 1) % COUNT ))
-    ${SWITCH} \$SYS \$NEXT
+    ${SWITCH_SCRIPT} \$SYS \$(( (CUR + 1) % COUNT ))
   "
 
-  # --- prefix+N: new tab ---
-  tmux bind-key -T prefix N run-shell "
-    SESSION=\$(tmux display-message -p '#S')
-    PANE=\$(tmux display-message -p '#{pane_index}')
-    case \"\$PANE\" in
-      3|4) EC=DEVOPEN_RTAB_COUNT; ET=DEVOPEN_RTAB; EM=DEVOPEN_RMAP; SYS=right;  CONTENT=\"\${SESSION}:0.4\"; SHELF=\"\${SESSION}:1\" ;;
-      1|2) EC=DEVOPEN_BTAB_COUNT; ET=DEVOPEN_BTAB; EM=DEVOPEN_BMAP; SYS=bottom; CONTENT=\"\${SESSION}:0.2\"; SHELF=\"\${SESSION}:2\" ;;
-      *) exit 0 ;;
-    esac
-    TMPFILE=\$(mktemp /tmp/devopen-cmd-XXXX)
-    tmux popup -E -w 40 -h 3 \"TMPFILE=\$TMPFILE ${NEW}\"
-    CMD=\$(cat \$TMPFILE); rm -f \$TMPFILE
-    COUNT=\$(tmux show-environment -t \$SESSION \$EC | cut -d= -f2)
-    MAP=\$(tmux show-environment -t \$SESSION \$EM | cut -d= -f2)
-    DIR=\$(tmux display-message -p -t \"\$CONTENT\" '#{pane_current_path}')
-    tmux split-window -t \"\$SHELF\" -h -c \"\$DIR\"
-    NEW_SHELF_SLOT=\$(( COUNT - 1 ))
-    tmux swap-pane -s \"\$CONTENT\" -t \"\${SHELF}.\${NEW_SHELF_SLOT}\"
-    NEWCOUNT=\$(( COUNT + 1 ))
-    tmux set-environment -t \$SESSION \$EC \$NEWCOUNT
-    tmux set-environment -t \$SESSION \$ET \$COUNT
-    NEW_MAP=\"\${MAP}:\${NEW_SHELF_SLOT}\"
-    CUR_IDX=\$(tmux show-environment -t \$SESSION \$ET | cut -d= -f2)
-    NEW_MAP=\$(echo \"\$NEW_MAP\" | tr ':' '\n' | awk -v cur=\"\$CUR_IDX\" -v slot=\"\$NEW_SHELF_SLOT\" 'NR==cur+1{print slot; next}{print}' | tr '\n' ':' | sed 's/:\$//')
-    NEW_MAP=\"\${NEW_MAP}:-\"
-    tmux set-environment -t \$SESSION \$EM \"\$NEW_MAP\"
-    tmux select-pane -t \"\$CONTENT\"
-    [ -n \"\$CMD\" ] && tmux send-keys -t \"\$CONTENT\" \"\$CMD\" C-m
-    tmux display-message \"[\$NEWCOUNT/\$NEWCOUNT] zsh\"
-  "
-
-  # --- prefix+X: kill current tab ---
-  tmux bind-key -T prefix X run-shell "
-    SESSION=\$(tmux display-message -p '#S')
-    PANE=\$(tmux display-message -p '#{pane_index}')
-    case \"\$PANE\" in
-      3|4) ET=DEVOPEN_RTAB; EC=DEVOPEN_RTAB_COUNT; EM=DEVOPEN_RMAP; CONTENT=\"\${SESSION}:0.4\"; SHELF=\"\${SESSION}:1\" ;;
-      1|2) ET=DEVOPEN_BTAB; EC=DEVOPEN_BTAB_COUNT; EM=DEVOPEN_BMAP; CONTENT=\"\${SESSION}:0.2\"; SHELF=\"\${SESSION}:2\" ;;
-      *) exit 0 ;;
-    esac
-    COUNT=\$(tmux show-environment -t \$SESSION \$EC | cut -d= -f2)
-    CUR=\$(tmux show-environment -t \$SESSION \$ET | cut -d= -f2)
-    [ \$COUNT -le 1 ] && tmux display-message 'Cannot close last tab' && exit 0
-    MAP=\$(tmux show-environment -t \$SESSION \$EM | cut -d= -f2)
-    PREV=\$(( (CUR - 1 + COUNT) % COUNT ))
-    PREV_SHELF=\$(echo \"\$MAP\" | tr ':' '\n' | sed -n \"\$(( PREV + 1 ))p\")
-    tmux swap-pane -s \"\$CONTENT\" -t \"\${SHELF}.\${PREV_SHELF}\"
-    tmux kill-pane -t \"\${SHELF}.\${PREV_SHELF}\"
-    NEW_MAP=\$(echo \"\$MAP\" | tr ':' '\n' | awk -v cur=\"\$CUR\" -v prev=\"\$PREV\" -v slot=\"\$PREV_SHELF\" '
-      NR == prev+1 { next }
-      NR == cur+1  { print \"-\"; next }
-      { val=\$0+0; if (val > slot) val--; print val }
-    ' | tr '\n' ':' | sed 's/:\$//')
-    NEWCOUNT=\$(( COUNT - 1 ))
-    tmux set-environment -t \$SESSION \$EC \$NEWCOUNT
-    tmux set-environment -t \$SESSION \$ET \$PREV
-    tmux set-environment -t \$SESSION \$EM \"\$NEW_MAP\"
-    tmux select-pane -t \"\$CONTENT\"
-    CMD=\$(tmux display-message -p -t \"\$CONTENT\" '#{pane_current_command}')
-    tmux display-message \"[\$(( PREV + 1 ))/\$NEWCOUNT] \$CMD\"
-  "
-
-  # --- prefix+G: fzf jump (unified, all tabs + plain panes) ---
-  tmux bind-key -T prefix G run-shell "
-    SESSION=\$(tmux display-message -p '#S')
-    TMPFILE=\$(mktemp /tmp/devopen-sel-XXXX)
-    tmux popup -E -w 50 -h 20 \"TMPFILE=\$TMPFILE ${JUMP} jump\"
-    SYS=\$(sed -n '1p' \$TMPFILE); IDX=\$(sed -n '2p' \$TMPFILE); rm -f \$TMPFILE
-    [ -z \"\$SYS\" ] || [ -z \"\$IDX\" ] && exit 0
-    if [ \"\$SYS\" = \"pane\" ]; then
-      tmux select-pane -t \"\${SESSION}:0.\${IDX}\"
-    elif [ \"\$SYS\" = \"right\" ]; then
-      ${SWITCH} right \$IDX
-      tmux select-pane -t \"\${SESSION}:0.4\"
-    else
-      ${SWITCH} bottom \$IDX
-      tmux select-pane -t \"\${SESSION}:0.2\"
-    fi
-  "
-
-  # --- prefix+D: fzf kill (unified, all tabs, excludes active) ---
-  tmux bind-key -T prefix D run-shell "
-    SESSION=\$(tmux display-message -p '#S')
-    RCOUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_RTAB_COUNT | cut -d= -f2)
-    BCOUNT=\$(tmux show-environment -t \$SESSION DEVOPEN_BTAB_COUNT | cut -d= -f2)
-    TOTAL=\$(( RCOUNT + BCOUNT ))
-    [ \$TOTAL -le 2 ] && tmux display-message 'Cannot close last tab in each pane' && exit 0
-    TMPFILE=\$(mktemp /tmp/devopen-sel-XXXX)
-    tmux popup -E -w 50 -h 20 \"TMPFILE=\$TMPFILE ${KILL} kill\"
-    SYS=\$(sed -n '1p' \$TMPFILE); IDX=\$(sed -n '2p' \$TMPFILE); rm -f \$TMPFILE
-    [ -z \"\$SYS\" ] || [ -z \"\$IDX\" ] && exit 0
-    if [ \"\$SYS\" = \"right\" ]; then
-      ET=DEVOPEN_RTAB; EC=DEVOPEN_RTAB_COUNT; EM=DEVOPEN_RMAP; CONTENT=\"\${SESSION}:0.4\"; SHELF=\"\${SESSION}:1\"
-    else
-      ET=DEVOPEN_BTAB; EC=DEVOPEN_BTAB_COUNT; EM=DEVOPEN_BMAP; CONTENT=\"\${SESSION}:0.2\"; SHELF=\"\${SESSION}:2\"
-    fi
-    COUNT=\$(tmux show-environment -t \$SESSION \$EC | cut -d= -f2)
-    [ \$COUNT -le 1 ] && tmux display-message 'Cannot close last tab in this pane' && exit 0
-    CUR=\$(tmux show-environment -t \$SESSION \$ET | cut -d= -f2)
-    MAP=\$(tmux show-environment -t \$SESSION \$EM | cut -d= -f2)
-    SHELF_IDX=\$(echo \"\$MAP\" | tr ':' '\n' | sed -n \"\$(( IDX + 1 ))p\")
-    tmux kill-pane -t \"\${SHELF}.\${SHELF_IDX}\"
-    NEW_MAP=\$(echo \"\$MAP\" | tr ':' '\n' | awk -v idx=\"\$IDX\" -v slot=\"\$SHELF_IDX\" '
-      NR == idx+1 { next }
-      { val=\$0; if (val != \"-\" && val+0 > slot) val=val-1; print val }
-    ' | tr '\n' ':' | sed 's/:\$//')
-    NEWCOUNT=\$(( COUNT - 1 ))
-    tmux set-environment -t \$SESSION \$EC \$NEWCOUNT
-    NEWCUR=\$CUR
-    [ \"\$IDX\" -lt \"\$CUR\" ] && NEWCUR=\$(( CUR - 1 ))
-    tmux set-environment -t \$SESSION \$ET \$NEWCUR
-    tmux set-environment -t \$SESSION \$EM \"\$NEW_MAP\"
-    tmux display-message \"Killed \$SYS tab \$(( IDX + 1 )) [\$NEWCOUNT left]\"
-  "
+  # --- keybindings: all logic now lives in external scripts ---
+  tmux bind-key -T prefix N run-shell "$TABNEW"
+  tmux bind-key -T prefix X run-shell "$TABKILLCUR"
+  tmux bind-key -T prefix G run-shell "$TABJUMP"
+  tmux bind-key -T prefix D run-shell "$TABKILLFZF"
 
   # --- Alt+1-9: jump by number ---
   local IDX
@@ -575,8 +590,8 @@ TABPICKEOF
     tmux bind-key -n "M-$i" run-shell "
       PANE=\$(tmux display-message -p '#{pane_index}')
       case \"\$PANE\" in
-        3|4) ${SWITCH} right ${IDX} ;;
-        1|2) ${SWITCH} bottom ${IDX} ;;
+        3|4) ${SWITCH_SCRIPT} right ${IDX} ;;
+        1|2) ${SWITCH_SCRIPT} bottom ${IDX} ;;
         *)   tmux send-keys 'M-$i' ;;
       esac
     "
@@ -631,12 +646,15 @@ function devclose() {
   rm -f \
     "/tmp/devopen-tabrender-${SESSION}.sh" \
     "/tmp/devopen-tabnav-${SESSION}.sh" \
-    "/tmp/devopen-rtabs-${SESSION}.cache" \
-    "/tmp/devopen-btabs-${SESSION}.cache" \
-    "/tmp/devopen-new-${SESSION}.sh" \
+    "/tmp/devopen-tabnew-${SESSION}.sh" \
+    "/tmp/devopen-tabkillcur-${SESSION}.sh" \
+    "/tmp/devopen-tabjump-${SESSION}.sh" \
+    "/tmp/devopen-tabkillfzf-${SESSION}.sh" \
     "/tmp/devopen-tabpick-${SESSION}.sh" \
     "/tmp/devopen-switch-${SESSION}.sh" \
-    "/tmp/devopen-detect-${SESSION}.sh"
+    "/tmp/devopen-new-${SESSION}.sh" \
+    "/tmp/devopen-rtabs-${SESSION}.cache" \
+    "/tmp/devopen-btabs-${SESSION}.cache"
   rm -f /tmp/devopen-cmd-* /tmp/devopen-sel-*
   tmux unbind-key -n h     2>/dev/null
   tmux unbind-key -n l     2>/dev/null
