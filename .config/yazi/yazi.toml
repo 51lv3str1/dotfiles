@@ -1,14 +1,11 @@
 [opener]
 image = [
-  { run = "swayimg %s", block = false, desc = "Open image in Swayimg" },
-  { run = "swayimg --gallery", block = false, desc = "Open gallery in Swayimg" },
-  { run = "open %s", block = false, desc = "Open image in Preview (macOS)" }
+  { run = "open %s", block = false, desc = "Open image on image viewer" }
 ]
 
 edit = [
   { run = "nvim %s", block = true, desc = "Open in Neovim" },
   { run = "code %s", block = false, desc = "Open in VS Code" },
-  { run = "zsh -i -c 'devopen %s'", block = true, desc = "Open with tmux dev layout" }
 ]
 
 [open]
