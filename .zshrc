@@ -32,22 +32,27 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   export LDFLAGS="-L/opt/homebrew/opt/libxml2/lib"
   export CPPFLAGS="-I/opt/homebrew/opt/libxml2/include"
 
+  # clipboard
   alias clip="pbcopy"
 
+  # System
   alias update="brew update && brew upgrade && brew cleanup && cargo install-update -a"
+
 else
   # Linux
 
   # XDG
   export XDG_DATA_DIRS="$HOME/.local/share:/usr/local/share:/usr/share"
 
+  # clipboard
+  alias clip="wl-copy"
+
   # Homebrew
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
   export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
 
-  alias clip="wl-copy"
+  # System
   alias niriconfig="nvim ~/.config/niri/config.kdl"
-
   alias update="sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y && brew upgrade && cargo install-update -a"
 fi
 
