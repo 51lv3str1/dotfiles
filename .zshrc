@@ -74,8 +74,6 @@ alias ta="tmux attach"
 alias rss="eilmeldung"
 alias cal_sync="vdirsyncer sync"
 
-alias toronja="devopen ~/GitHub/Allaria+/toronja"
-
 # ─── Shell tools ──────────────────────────────────────────────
 eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
@@ -199,94 +197,4 @@ bwl() {
 bwsync() {
   _bw_check
   bw sync && echo "🔄 Vault synced"
-}
-
-# Inserta un header de 2 filas encima del pane dado.
-# Uso: _pane_header <pane_id>
-# Devuelve en stdout el pane_id del header creado.
-_pane_header() {
-  local target=$1
-  tmux split-window -v -b -l 2 -t "$target" -P -F '#{pane_id}'
-}
-
-devopen() {
-  local SESSION="dev-$(date +%s)"
-  local P="/tmp/devopen-${SESSION}"
-
-  # Pane layout:
-  #   ┌─────────────────┬────────┐
-  #   │                 │ pane 3 │  ← header (BAR=2)
-  #   │   pane 0        ├────────┤
-  #   │                 │ pane 4 │
-  #   ├─────────────────┼────────┤
-  #   │   pane 1        │ pane 5 │  ← headers (BAR=2)
-  #   ├─────────────────┼────────┤
-  #   │   pane 2        │ pane 6 │
-  #   └─────────────────┴────────┘
-  #
-  # Construcción por pane_id:
-  #   new-session          → ID0 (full)
-  #   split ID0 -h -p25    → ID0=pane0, ID_R=right-col
-  #   split ID0 -v         → ID0=pane0, ID2=pane2
-  #   _pane_header ID2     → ID1=pane1, ID2=pane2
-  #   _pane_header ID_R    → ID3=pane3, ID_R=pane4
-  #   split ID_R -v        → ID_R=pane4, ID6=pane6
-  #   _pane_header ID6     → ID5=pane5, ID6=pane6
-
-  tmux new-session -d -s "$SESSION" -x "$(tput cols)" -y "$(tput lines)"
-
-  local ID0 ID_R ID1 ID2 ID3 ID4 ID5 ID6
-
-  ID0=$(tmux display-message -p -t "$SESSION:0.0" '#{pane_id}')
-  ID_R=$(tmux split-window -h -p 25 -t "$ID0" -P -F '#{pane_id}')
-  ID2=$(tmux split-window -v    -t "$ID0" -P -F '#{pane_id}')
-  ID1=$(_pane_header "$ID2")
-  ID3=$(_pane_header "$ID_R")
-  ID4="$ID_R"
-  ID6=$(tmux split-window -v -t "$ID4" -P -F '#{pane_id}')
-  ID5=$(_pane_header "$ID6")
-
-  # layout.sh — pure resize
-  # Args: SESSION  P2_H
-  #   P2_H = height of pane 2 and pane 6 (must match for alignment)
-  #   BAR  = 2 rows (pane 1, pane 3, pane 5)
-  # Derived:
-  #   P0_H = P4_H = H - BAR - P2_H
-  cat > "${P}-layout.sh" << LAYOUT
-#!/bin/zsh
-SESSION=\$1
-P2_H=\$2
-BAR=2
-H=\$(tmux display-message -p -t "\$SESSION" "#{window_height}" 2>/dev/null)
-[[ -z "\$H" || \$H -lt 10 ]] && exit 1
-(( TOP_H = H - BAR - P2_H ))
-(( TOP_H < 1 )) && TOP_H=1
-tmux resize-pane -t "$ID0" -y \$TOP_H 2>/dev/null  # pane 0
-tmux resize-pane -t "$ID1" -y \$BAR   2>/dev/null  # pane 1
-tmux resize-pane -t "$ID2" -y \$P2_H  2>/dev/null  # pane 2
-tmux resize-pane -t "$ID3" -y \$BAR   2>/dev/null  # pane 3
-tmux resize-pane -t "$ID4" -y \$TOP_H 2>/dev/null  # pane 4
-tmux resize-pane -t "$ID5" -y \$BAR   2>/dev/null  # pane 5
-tmux resize-pane -t "$ID6" -y \$P2_H  2>/dev/null  # pane 6
-LAYOUT
-  chmod +x "${P}-layout.sh"
-
-  local INIT_H=$(tput lines)
-  local INIT_P2_H=$(( INIT_H / 4 ))
-  (( INIT_P2_H < 4 )) && INIT_P2_H=4
-
-  tmux set-hook -t "$SESSION" after-select-window \
-    "run-shell '${P}-layout.sh $SESSION $INIT_P2_H && tmux set-hook -t $SESSION -u after-select-window'"
-
-  tmux select-window -t "$SESSION:0"
-  tmux select-pane   -t "$ID0"
-  tmux attach        -t "$SESSION"
-}
-
-devclose() {
-  local SESSION
-  SESSION=$(tmux display-message -p '#S' 2>/dev/null)
-  [[ -z "$SESSION" ]] && { echo "not in a tmux session"; return 1; }
-  rm -f /tmp/devopen-${SESSION}-*
-  tmux kill-session -t "$SESSION"
 }
