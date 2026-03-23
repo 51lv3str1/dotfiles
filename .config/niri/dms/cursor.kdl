@@ -4,6 +4,6 @@
 // ! PLACE YOUR CUSTOM CONFIGURATION ELSEWHERE !
 
 cursor {
-    xcursor-theme "catppuccin-frappe-mauve-cursors"
+    xcursor-theme "catppuccin-mocha-mauve-cursors"
     xcursor-size 24
 }
