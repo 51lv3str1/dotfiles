@@ -203,3 +203,81 @@ bwsync() {
   _bw_check
   bw sync && echo "🔄 Vault synced"
 }
+
+search() {
+  if command -v brew &>/dev/null; then
+    echo "\n🍺 Homebrew:"
+    results=$(brew search "$1" 2>/dev/null | grep -v "^==>")
+    if [ -n "$results" ]; then
+      echo "$results" | tr '\n' ' ' | xargs brew info --json 2>/dev/null | \
+        jq -r '.[] | "\(.name): \(.versions.stable)"'
+    else
+      echo "  No package found for \"$1\""
+    fi
+  fi
+
+  if command -v cargo &>/dev/null; then
+    echo "\n📦 Cargo (crates.io):"
+    cargo_results=$(cargo search "$1")
+    if [ -n "$cargo_results" ]; then
+      echo "$cargo_results"
+    else
+      echo "  No package found for \"$1\""
+    fi
+  fi
+
+  if command -v apt-cache &>/dev/null; then
+    echo "\n🐧 APT:"
+    apt_results=$(apt-cache search "$1")
+    if [ -n "$apt_results" ]; then
+      echo "$apt_results"
+    else
+      echo "  No package found for \"$1\""
+    fi
+  fi
+}
+
+install() {
+  local options=()
+
+  if command -v brew &>/dev/null; then
+    results=$(brew search "$1" 2>/dev/null | grep -v "^==>")
+    while IFS= read -r pkg; do
+      [[ -n "$pkg" ]] && options+=("brew: $pkg")
+    done <<< "$results"
+  fi
+
+  if command -v cargo &>/dev/null; then
+    results=$(cargo search "$1" 2>/dev/null | grep "^[a-z]" | awk '{print $1}' | tr -d '"')
+    while IFS= read -r pkg; do
+      [[ -n "$pkg" ]] && options+=("cargo: $pkg")
+    done <<< "$results"
+  fi
+
+  if command -v apt-cache &>/dev/null; then
+    results=$(apt-cache search "$1" 2>/dev/null | awk '{print $1}')
+    while IFS= read -r pkg; do
+      [[ -n "$pkg" ]] && options+=("apt: $pkg")
+    done <<< "$results"
+  fi
+
+  if [ ${#options[@]} -eq 0 ]; then
+    echo "No packages found for \"$1\""
+    return 1
+  fi
+
+  local selected
+  selected=$(printf '%s\n' "${options[@]}" | fzf --prompt="Install > " --height=40% --border)
+
+  [[ -z "$selected" ]] && return 0
+
+  local manager pkg
+  manager=$(echo "$selected" | cut -d: -f1)
+  pkg=$(echo "$selected" | cut -d: -f2 | xargs)
+
+  case "$manager" in
+    brew)  brew install "$pkg" ;;
+    cargo) cargo install "$pkg" ;;
+    apt)   sudo apt install "$pkg" ;;
+  esac
+}
