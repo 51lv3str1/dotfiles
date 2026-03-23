@@ -54,6 +54,7 @@ else
   # System
   alias niriconfig="nvim ~/.config/niri/config.kdl"
   alias update="sudo apt update && sudo apt upgrade -y && sudo apt autoremove -y && brew upgrade && cargo install-update -a"
+  alias mimeapps="update-desktop-database ~/.local/share/applications && xdgctl"
 fi
 
 # ─── Aliases comunes ──────────────────────────────────────────
