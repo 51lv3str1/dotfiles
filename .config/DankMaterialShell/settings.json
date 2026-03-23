@@ -232,7 +232,7 @@
   "networkPreference": "auto",
   "iconTheme": "Yaru-purple-dark",
   "cursorSettings": {
-    "theme": "Yaru",
+    "theme": "catppuccin-frappe-mauve-cursors",
     "size": 24,
     "niri": {
       "hideWhenTyping": false,
