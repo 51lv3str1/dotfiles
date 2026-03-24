@@ -8,15 +8,9 @@ yabai -m config left_padding   10
 yabai -m config right_padding  10
 yabai -m config window_gap     10
 
-# ─── Ventanas ─────────────────────────────────────────────────
-yabai -m config window_shadow         on
-yabai -m config window_opacity        on
-yabai -m config active_window_opacity 1.0
-yabai -m config normal_window_opacity 0.9
-
 # ─── Bordes (similar a Niri border) ───────────────────────────
 # Requiere instalar: brew install FelixKratz/formulae/borders
-borders active_color=0xff7355a6 inactive_color=0xff707070 width=2.0 &
+borders active_color=0xff7355a6 inactive_color=0xff707070 width=3.0 radius=9.0 &
 
 # ─── Mouse ────────────────────────────────────────────────────
 yabai -m config mouse_modifier       cmd
