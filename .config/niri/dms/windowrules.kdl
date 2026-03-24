@@ -56,7 +56,6 @@ window-rule {
     match app-id="com.mitchellh.ghostty"
     match app-id="zen"
     match app-id=r#"^org\.wezfurlong\.wezterm$"#
-    opacity 0.90
     draw-border-with-background false
 }
 
