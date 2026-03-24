@@ -10,9 +10,9 @@ italic = { family = "DepartureMono Nerd Font", style = "Italic" }
 size = 13.0
 
 [window]
-decorations = "None"
+decorations = "Buttonless"
 padding = { x = 12, y = 12 }
-opacity = 1.0
+opacity = 0.90
 
 [scrolling]
 history = 3023
