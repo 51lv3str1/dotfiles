@@ -1,0 +1,106 @@
+animations {
+
+    // === Workspace switch ===
+    workspace-switch {
+        spring damping-ratio=1.0 stiffness=1400 epsilon=0.0001
+    }
+
+    // === Window open — aggressive condensation from chaos to solid ===
+    window-open {
+        duration-ms 750
+        curve "ease-out-cubic"
+
+        custom-shader r"
+            // Ported from gl-transitions/ripple.glsl (MIT, gre)
+
+            vec4 open_color(vec3 coords_geo, vec3 size_geo) {
+                float p = niri_clamped_progress;
+                vec2 uv = coords_geo.xy;
+                float seed = niri_random_seed * 6.28318;
+
+                float amplitude = 100.0;
+                float speed = 50.0;
+
+                vec2 dir = uv - vec2(0.5);
+                float dist = length(dir);
+
+                float intensity = (1.0 - p) * (1.0 - p);
+                vec2 offset = dir * (sin(p * dist * amplitude - p * speed + seed) + 0.5) / 30.0;
+
+                vec2 wuv = uv + offset * intensity;
+                vec3 tc = niri_geo_to_tex * vec3(wuv, 1.0);
+                vec4 color = texture2D(niri_tex, tc.st);
+
+                float alpha = smoothstep(0.0, 0.3, p);
+                return color * alpha;
+            }
+        "
+    }
+
+    // === Window close — fluid domain-warped smoke dissolve ===
+    window-close {
+        duration-ms 750
+        curve "ease-out-cubic"
+
+        custom-shader r"
+            // Ported from gl-transitions/ripple.glsl (MIT, gre)
+
+            vec4 close_color(vec3 coords_geo, vec3 size_geo) {
+                float p = niri_clamped_progress;
+                vec2 uv = coords_geo.xy;
+                float seed = niri_random_seed * 6.28318;
+
+                float amplitude = 100.0;
+                float speed = 50.0;
+
+                vec2 dir = uv - vec2(0.5);
+                float dist = length(dir);
+
+                float intensity = p * p;
+                vec2 offset = dir * (sin(p * dist * amplitude - p * speed + seed) + 0.5) / 30.0;
+
+                vec2 wuv = uv + offset * intensity;
+                vec3 tc = niri_geo_to_tex * vec3(wuv, 1.0);
+                vec4 color = texture2D(niri_tex, tc.st);
+
+                float alpha = smoothstep(1.0, 0.5, p);
+                return color * alpha;
+            }
+        "
+    }
+
+    // === Sync group — all three must match ===
+    horizontal-view-movement {
+        spring damping-ratio=1.0 stiffness=1100 epsilon=0.0001
+    }
+
+    window-movement {
+        spring damping-ratio=1.0 stiffness=1100 epsilon=0.0001
+    }
+
+    window-resize {
+        spring damping-ratio=1.0 stiffness=1100 epsilon=0.0001
+    }
+
+    // === UI elements ===
+    config-notification-open-close {
+        spring damping-ratio=0.6 stiffness=1000 epsilon=0.001
+    }
+
+    exit-confirmation-open-close {
+        spring damping-ratio=0.6 stiffness=500 epsilon=0.01
+    }
+
+    screenshot-ui-open {
+        duration-ms 200
+        curve "cubic-bezier" 0.05 0.7 0.1 1
+    }
+
+    overview-open-close {
+        spring damping-ratio=1.0 stiffness=1100 epsilon=0.0001
+    }
+
+    recent-windows-close {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.001
+    }
+}
