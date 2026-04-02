@@ -1,0 +1,66 @@
+// DMS Window Rules - Managed by DankMaterialShell
+// Do not edit manually - changes may be overwritten
+
+// @id=dms_rule_0 @name=
+window-rule {
+    match app-id="^org\\.wezfurlong\\.wezterm$"
+}
+
+// @id=dms_rule_1 @name=
+window-rule {
+    match app-id="^org\\.gnome\\."
+    geometry-corner-radius 12
+    clip-to-geometry true
+    draw-border-with-background false
+}
+
+// @id=dms_rule_2 @name=
+window-rule {
+    match app-id="^nm-connection-editor$"
+    default-column-width { proportion 0.5; }
+}
+
+// @id=dms_rule_3 @name=
+window-rule {
+    match app-id="^xdg-desktop-portal$"
+    open-floating true
+}
+
+// @id=dms_rule_4 @name=
+window-rule {
+    match app-id="^org\\.gnome\\.Nautilus$"
+}
+
+// @id=dms_rule_5 @name=
+window-rule {
+    match app-id="zoom" title="^Picture-in-Picture$"
+    open-floating true
+}
+
+// @id=dms_rule_6 @name=All
+window-rule {
+    geometry-corner-radius 12
+    clip-to-geometry true
+}
+
+// @id=dms_rule_7 @name=All-Inactive
+window-rule {
+    match is-active=false
+    opacity 0.90
+}
+
+// @id=dms_rule_8 @name=Terminal
+window-rule {
+    match app-id="Alacritty"
+    match app-id="kitty"
+    match app-id="com.mitchellh.ghostty"
+    match app-id="zen"
+    match app-id=r#"^org\.wezfurlong\.wezterm$"#
+    draw-border-with-background false
+}
+
+// @id=dms_rule_9 @name=AWS VPN Client
+window-rule {
+    match app-id="AWS VPN Client"
+    open-floating false
+}

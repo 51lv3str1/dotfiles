@@ -1,0 +1,3 @@
+config-notification {
+    disable-failed
+}

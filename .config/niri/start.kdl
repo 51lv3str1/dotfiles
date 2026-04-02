@@ -1,0 +1,9 @@
+// Add lines like this to spawn processes at startup.
+// Note that running niri as a session supports xdg-desktop-autostart,
+// which may be more convenient to use.
+// See the binds section below for more spawn examples.
+// This line starts waybar, a commonly used bar for Wayland compositors.
+spawn-at-startup "bash" "-c" "wl-paste --watch cliphist store &"
+spawn-at-startup "/usr/lib/mate-polkit/polkit-mate-authentication-agent-1"
+spawn-at-startup "mpvpaper" "-o" "no-audio --loop-playlist --panscan=1.0" "ALL" "/home/silver/.local/share/backgrounds/gh.gif"
+
