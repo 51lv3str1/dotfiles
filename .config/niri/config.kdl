@@ -37,8 +37,8 @@ include "dms/binds.kdl" //dms overrides
 // animations
 //include "animations/default/animations.kdl"
 //include "animations/dissolve/animations.kdl"
-include "animations/fade/animations.kdl"
-//include "animations/glitch/animations.kdl"
+//include "animations/fade/animations.kdl"
+include "animations/glitch/animations.kdl"
 //include "animations/pixelate/animations.kdl"
 //include "animations/ripple/animations.kdl"
 //include "animations/smoke/animations.kdl"
