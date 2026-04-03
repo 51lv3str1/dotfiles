@@ -7,6 +7,9 @@ binds {
     // === Application Launchers ===
 
     Mod+T hotkey-overlay-title="Open Terminal" { spawn "alacritty"; }
+    Mod+V {
+      spawn-sh "alacritty & sleep 0.3 && niri msg action consume-or-expel-window-left"
+    }
     Mod+B hotkey-overlay-title="Open Web Browser" { 
         spawn "google-chrome";
     }
@@ -15,9 +18,6 @@ binds {
     }
     Mod+A hotkey-overlay-title="Application Launcher" {
         spawn "dms" "ipc" "call" "spotlight" "toggle";
-    }
-    Mod+V hotkey-overlay-title="Clipboard Manager" {
-        spawn "dms" "ipc" "call" "clipboard" "toggle";
     }
     Mod+M hotkey-overlay-title="Task Manager" {
         spawn "dms" "ipc" "call" "processlist" "toggle";
