@@ -30,4 +30,6 @@ for i in $(seq 1 9); do
   yabai -m space $i --label "space$i" 2>/dev/null || true
 done
 
+yabai -m config external_bar all:41:0
+
 echo "yabai config loaded"

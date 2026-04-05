@@ -1,0 +1,76 @@
+#!/bin/bash
+
+source "$CONFIG_DIR/colors.sh"
+
+PLUGIN_DIR="$CONFIG_DIR/plugins"
+ITEM_DIR="$CONFIG_DIR/items"
+
+# ─── Bar ──────────────────────────────────────────────────────
+sketchybar --bar \
+  height=34 \
+  margin=7 \
+  y_offset=7 \
+  blur_radius=40 \
+  color=$TN_BASE \
+  border_width=1 \
+  border_color=$TN_BORDER \
+  corner_radius=10 \
+  padding_left=4 \
+  padding_right=4 \
+  notch_width=220 \
+  topmost=window
+
+# ─── Defaults ─────────────────────────────────────────────────
+sketchybar --default \
+  icon.font="DepartureMono Nerd Font:Regular:11.5" \
+  icon.color=$ITEM_COLOR \
+  label.font="DepartureMono Nerd Font:Regular:11.5" \
+  label.color=$ITEM_COLOR \
+  background.color=$ACCENT_COLOR \
+  background.corner_radius=6 \
+  background.height=24 \
+  padding_left=3 \
+  padding_right=3 \
+  label.padding_left=8 \
+  label.padding_right=8 \
+  animation.duration=180 \
+  animation.curve=quadratic
+
+# ─── Left ─────────────────────────────────────────────────────
+source "$ITEM_DIR/apple_logo.sh"
+source "$ITEM_DIR/spaces.sh"
+source "$ITEM_DIR/front_app.sh"
+
+# ─── Center (notch aware) ─────────────────────────────────────
+source "$ITEM_DIR/time.sh"
+source "$ITEM_DIR/weather.sh"
+
+# ─── Right ────────────────────────────────────────────────────
+source "$ITEM_DIR/volume.sh"
+source "$ITEM_DIR/bluetooth.sh"
+source "$ITEM_DIR/wifi.sh"
+source "$ITEM_DIR/battery.sh"
+source "$ITEM_DIR/memory.sh"
+source "$ITEM_DIR/cpu.sh"
+
+# ─── Isla: wifi + bluetooth + volumen ─────────────────────────
+sketchybar --add bracket connectivity_island \
+  wifi bluetooth volume \
+  --set connectivity_island \
+  background.drawing=on \
+  background.color=0xff1e1e2e \
+  background.corner_radius=10 \
+  background.height=28 \
+  padding_left=2 \
+  padding_right=2
+
+# ─── Bracket: spaces + front_app ─────────────────────────────
+sketchybar --add bracket spaces_group \
+  space.1 space.2 space.3 space.4 space.5 front_app \
+  --set spaces_group \
+  padding_left=6 \
+  padding_right=8 \
+  background.drawing=off
+
+# ─── Finalize ─────────────────────────────────────────────────
+sketchybar --update
