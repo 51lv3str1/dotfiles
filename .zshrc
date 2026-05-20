@@ -69,7 +69,6 @@ alias alacrittyconfig="nvim ~/.config/alacritty/alacritty.toml"
 alias cat="bat"
 alias top="btop"
 alias grep="rg"
-alias cd="z"
 alias lg="lazygit"
 alias ld="lazydocker"
 alias jira="jiratui ui"
@@ -82,7 +81,7 @@ alias cal_sync="vdirsyncer sync"
 
 # ─── Shell tools ──────────────────────────────────────────────
 eval "$(starship init zsh)"
-eval "$(zoxide init zsh)"
+eval "$(zoxide init --cmd cd zsh)"
 eval "$(fzf --zsh)"
 
 # ─── SDKMAN ───────────────────────────────────────────────────
