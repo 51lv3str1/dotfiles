@@ -2,7 +2,7 @@ animations {
 
     // === Workspace switch ===
     workspace-switch {
-        spring damping-ratio=1.0 stiffness=1400 epsilon=0.0001
+        spring damping-ratio=0.9 stiffness=1100 epsilon=0.0001
     }
 
     // === Window open — aggressive condensation from chaos to solid ===
@@ -69,8 +69,10 @@ animations {
     }
 
     // === Window close — fluid domain-warped smoke dissolve ===
+    // 300ms para que la disolución termine junto con el reacomodo de las
+    // ventanas vecinas (spring ~250-300ms), sin desfase.
     window-close {
-        duration-ms 500
+        duration-ms 300
         curve "ease-out-cubic"
 
         custom-shader r"
@@ -132,6 +134,8 @@ animations {
     }
 
     // === Sync group — all three must match ===
+    // Críticamente amortiguado (damping 1.0): frena sin rebote, así el reacomodo
+    // de ventanas al cerrar no "se pasa" ni desentona con la animación de cierre.
     horizontal-view-movement {
         spring damping-ratio=1.0 stiffness=1100 epsilon=0.0001
     }

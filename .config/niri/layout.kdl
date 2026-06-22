@@ -39,23 +39,38 @@ layout {
     //
     // Alternatively, you can override it with a window rule called
     // `draw-border-with-background`.
+    // Borde desactivado: dejamos SOLO el focus-ring para que la ventana
+    // activa no compita con el doble contorno y las inactivas queden sin anillo.
     border {
-        on
+        off
         width 2
         active-color   "#707070"
         inactive-color "#d0d0d0"
         urgent-color   "#cc4444"
     }
+    // Anillo de foco "neón" en tonos morados: del morado base #7355a6 a un
+    // mauve más claro #cba6f7, interpolado en oklch (camino corto) para un
+    // degradado suave que juega dentro del morado. 4px = bien visible.
     focus-ring {
-        width 3
-        active-color  "#7355a6"
-        inactive-color "#505050"
+        width 4
+        active-gradient from="#7355a6" to="#cba6f7" angle=45 in="oklch"
+        inactive-color "#2a2a3a"
     }
     shadow {
         softness 30
         spread 5
         offset x=0 y=5
         color "#0007"
+    }
+    // Indicador de pestañas (al agrupar columnas en tabs con Mod+W): mismo
+    // degradado morado del focus-ring para que todo combine.
+    tab-indicator {
+        active-gradient from="#7355a6" to="#cba6f7" angle=45 in="oklch"
+        inactive-color "#2a2a3a"
+    }
+    // Guía translúcida que aparece al arrastrar/mover una ventana para soltarla.
+    insert-hint {
+        gradient from="#7355a680" to="#cba6f780" angle=45 in="oklch"
     }
     struts {
     }

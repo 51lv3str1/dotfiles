@@ -23,8 +23,10 @@ include "layerrules.kdl"
 include "layout.kdl"
 
 // windowrules
-include "windowrules.kdl"
+// (se quitó include "windowrules.kdl": era idéntico a dms/windowrules.kdl y se
+//  cargaba dos veces. DMS regenera dms/windowrules.kdl.)
 include "dms/windowrules.kdl" //dms overrides
+include "windowrules-custom.kdl" //mis overrides (deben ir AL FINAL para ganar)
 
 // inputs
 include "gestures.kdl"
