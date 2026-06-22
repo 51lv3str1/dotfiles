@@ -8,9 +8,17 @@ edit = [
   { run = "code %s", block = false, desc = "Open in VS Code" },
 ]
 
+deb = [
+  { run = '/home/silver/.config/yazi/install-deb.sh "%s"', block = true, desc = "Instalar con apt" },
+]
+
 [open]
+prepend_rules = [
+  { url = "*.deb", use = "deb" },
+]
 rules = [
   { mime = "image/*", use = "image" },
+  { mime = "application/vnd.debian.binary-package", use = "deb" },
   { mime = "text/*", use = "edit" },
   { mime = "*/", use = "edit" },
   { mime = "inode/directory", use = "edit" }
