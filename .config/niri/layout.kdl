@@ -56,7 +56,11 @@ layout {
         active-gradient from="#7355a6" to="#cba6f7" angle=45 in="oklch"
         inactive-color "#2a2a3a"
     }
+    // Sombra suave en TODAS las ventanas (drop shadow) para darles profundidad
+    // y que floten sobre el wallpaper. La activa la sobreescribe con el glow
+    // morado (ver windowrules-custom.kdl).
     shadow {
+        on
         softness 30
         spread 5
         offset x=0 y=5

@@ -81,8 +81,8 @@ alias cal_sync="vdirsyncer sync"
 
 # ─── Shell tools ──────────────────────────────────────────────
 eval "$(starship init zsh)"
-eval "$(zoxide init --cmd cd zsh)"
 eval "$(fzf --zsh)"
+# zoxide se inicializa al FINAL del archivo (requisito de zoxide para no avisar)
 
 # ─── SDKMAN ───────────────────────────────────────────────────
 export SDKMAN_DIR="$HOME/.sdkman"
@@ -185,3 +185,6 @@ install() {
     apt)   sudo apt install "$pkg" ;;
   esac
 }
+
+# ─── zoxide (debe ir al FINAL del .zshrc) ─────────────────────
+eval "$(zoxide init --cmd cd zsh)"
