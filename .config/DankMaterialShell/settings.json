@@ -425,7 +425,9 @@
   "updaterCustomCommand": "",
   "updaterTerminalAdditionalParams": "",
   "displayNameMode": "system",
-  "screenPreferences": {},
+  "screenPreferences": {
+    "notifications": []
+  },
   "showOnLastDisplay": {},
   "niriOutputSettings": {},
   "hyprlandOutputSettings": {},
@@ -457,7 +459,8 @@
       "centerWidgets": [
         "music",
         "clock",
-        "weather"
+        "weather",
+        "notificationPill"
       ],
       "rightWidgets": [
         "systemTray",

@@ -1,0 +1,9 @@
+{
+  "id": "notificationPill",
+  "name": "Notification Pill",
+  "description": "Versión colapsada de la notificación como pastilla en la barra, en lugar del popup intrusivo.",
+  "icon": "notifications_active",
+  "type": "widget",
+  "component": "NotificationPill.qml",
+  "author": "silver"
+}
