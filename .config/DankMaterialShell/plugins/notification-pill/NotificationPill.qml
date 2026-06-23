@@ -4,65 +4,81 @@ import qs.Services
 import qs.Modules.Plugins
 import qs.Widgets
 
-// Pastilla de notificación para la DankBar: muestra la última notificación
-// (avatar + app + summary) como una píldora en la topbar, con botones de
-// "abrir" y "descartar". NO se auto-oculta: queda hasta que la descartás.
+// Pastilla de notificación para la DankBar.
+//   - Colapsada (sin notif): campana gris idéntica al botón de la derecha.
+//   - Activa (llega notif): avatar (imagen o campana morada) + app + summary.
+//     Se auto-oculta tras unos segundos.
+//   - Click en el cuerpo: abre el centro de notificaciones anclado a la pastilla.
 BasePill {
     id: root
 
-    // Dispara cuando llega una notificación nueva (la usamos solo como gatillo;
-    // el contenido mostrado se guarda en 'current' para que persista aunque el
-    // popup nativo expire de su lado).
     readonly property var latest: NotificationService.popups.length > 0 ? NotificationService.popups[NotificationService.popups.length - 1] : null
 
-    property var current: null
     property bool showing: false
     property string appText: ""
     property string summaryText: ""
     property string avatarSource: ""
+
+    // Hay notificaciones en "Current". OJO: el service hace
+    // notifications.push(wrapper) (muta in-place, NO emite señal), así que un
+    // binding no se entera del ALTA. Lo resolvemos sondeando el valor real cada
+    // poco — siempre refleja la realidad. Tiñe la campana de morado si hay.
+    property bool hasUnread: false
+
+    Timer {
+        interval: 500
+        repeat: true
+        running: true
+        onTriggered: root.hasUnread = NotificationService.notifications.length > 0
+    }
 
     readonly property real pillH: root.widgetThickness
     readonly property real avatarSize: Math.max(16, pillH - 8)
 
     onLatestChanged: {
         if (latest) {
-            current = latest;
             appText = (latest.notification && latest.notification.appName) || latest.appName || "";
             summaryText = latest.summary || latest.body || "";
             avatarSource = latest.image || latest.appIcon || "";
             showing = true;
+            hideTimer.restart();
         }
     }
 
-    // Ir a donde lleva la notificación: invoca su acción por defecto y descarta.
-    function activateNotification() {
-        if (current && current.actions && current.actions.length > 0)
-            current.actions[0].invoke();
-        if (current)
-            NotificationService.dismissNotification(current);
-        _clear();
+    // Auto-ocultado: colapsa la pastilla (la notif queda en el centro).
+    Timer {
+        id: hideTimer
+        interval: 6000
+        repeat: false
+        onTriggered: root.showing = false
     }
 
-    // Descartar sin abrir.
-    function dismissNotification() {
-        if (current)
-            NotificationService.dismissNotification(current);
-        _clear();
+    // Abre el centro de notificaciones anclado a ESTA pastilla.
+    function openNotificationCenter() {
+        const loader = PopoutService.notificationCenterLoader;
+        if (loader && !loader.active) {
+            loader.active = true;
+            Qt.callLater(root.openNotificationCenter);
+            return;
+        }
+        const popout = PopoutService.notificationCenterPopout;
+        if (!popout)
+            return;
+        const barPosition = root.axis?.edge === "left" ? 2 : (root.axis?.edge === "right" ? 3 : (root.axis?.edge === "top" ? 0 : 1));
+        if (popout.setBarContext)
+            popout.setBarContext(barPosition, root.barConfig?.bottomGap ?? 0);
+        const globalPos = root.visualContent.mapToItem(null, 0, 0);
+        const pos = SettingsData.getPopupTriggerPosition(globalPos, root.parentScreen, root.barThickness, root.visualWidth, root.barConfig?.spacing ?? 4, barPosition, root.barConfig);
+        PopoutService.toggleNotificationCenter(pos.x, pos.y, pos.width, root.section, root.parentScreen);
     }
 
-    function _clear() {
-        current = null;
-        showing = false;
-    }
-
-    // Click en el cuerpo de la pastilla = ir a la notificación.
-    onClicked: activateNotification()
+    onClicked: root.openNotificationCenter()
 
     content: Component {
         Item {
             id: body
             implicitHeight: root.pillH
-            implicitWidth: root.showing ? Math.min(row.implicitWidth, 460) : collapsed.implicitWidth
+            implicitWidth: root.showing ? Math.min(row.implicitWidth, 380) : collapsed.implicitWidth
             clip: true
 
             Behavior on implicitWidth {
@@ -72,18 +88,35 @@ BasePill {
                 }
             }
 
-            // Estado colapsado (sin notificación): campana idéntica a la del
-            // botón de notificaciones de la derecha (mismo color y tamaño -4).
-            DankIcon {
+            // Colapsada: si hay notifs sin leer, campana DENTRO de un círculo
+            // morado relleno (igual que el avatar) -> se lee claramente morado.
+            // Si no hay, campana gris normal (como el botón de la derecha).
+            Item {
                 id: collapsed
-                anchors.centerIn: parent
                 visible: !root.showing
-                name: "notifications"
-                size: Theme.barIconSize(root.barThickness, -4, root.barConfig?.maximizeWidgetIcons, root.barConfig?.iconScale)
-                color: Theme.widgetIconColor
+                anchors.centerIn: parent
+                implicitWidth: root.hasUnread ? root.avatarSize : bellIcon.implicitWidth
+                implicitHeight: root.pillH
+
+                Rectangle {
+                    visible: root.hasUnread
+                    anchors.centerIn: parent
+                    width: root.avatarSize
+                    height: root.avatarSize
+                    radius: width / 2
+                    color: Theme.primary
+                }
+
+                DankIcon {
+                    id: bellIcon
+                    anchors.centerIn: parent
+                    name: "notifications"
+                    size: root.hasUnread ? Math.round(root.avatarSize * 0.6) : Theme.barIconSize(root.barThickness, -4, root.barConfig?.maximizeWidgetIcons, root.barConfig?.iconScale)
+                    color: root.hasUnread ? (Theme.onPrimary ?? Theme.surface) : Theme.widgetIconColor
+                }
             }
 
-            // Estado expandido: una línea -> avatar + app + summary + botones.
+            // Activa: avatar (imagen o campana morada) + app + summary.
             Row {
                 id: row
                 height: root.pillH
@@ -137,28 +170,6 @@ BasePill {
                     elide: Text.ElideRight
                     maximumLineCount: 1
                     width: Math.min(implicitWidth, 240)
-                }
-
-                // Botón: ir a la notificación (acción por defecto).
-                DankActionButton {
-                    anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: Math.round(root.pillH * 0.86)
-                    iconName: "open_in_new"
-                    iconSize: Math.round(root.pillH * 0.5)
-                    iconColor: Theme.primary
-                    tooltipText: "Abrir"
-                    onClicked: root.activateNotification()
-                }
-
-                // Botón: descartar.
-                DankActionButton {
-                    anchors.verticalCenter: parent.verticalCenter
-                    buttonSize: Math.round(root.pillH * 0.86)
-                    iconName: "close"
-                    iconSize: Math.round(root.pillH * 0.5)
-                    iconColor: Theme.surfaceText
-                    tooltipText: "Descartar"
-                    onClicked: root.dismissNotification()
                 }
             }
         }
