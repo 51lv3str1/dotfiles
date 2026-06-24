@@ -41,9 +41,9 @@ binds {
     }
 
     // === Input ===
-    // Trackpad toggle (keyboard-first). Essential as a keybind: once the trackpad
-    // is off there is no pointer to click the pill and turn it back on.
-    Mod+Shift+M hotkey-overlay-title="Toggle Trackpad" {
+    // Mouse + trackpad toggle (keyboard-first). Essential as a keybind: once the
+    // pointer is off there is no cursor to click the pill and turn it back on.
+    Mod+Shift+M hotkey-overlay-title="Toggle Pointer" {
         spawn "bash" "/home/silver/.config/niri/scripts/toggle-trackpad.sh";
     }
 

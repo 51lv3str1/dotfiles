@@ -1,0 +1,10 @@
+// Cursor config — replaces the DMS-managed dms/cursor.kdl include so the pointer
+// toggle can also hide the cursor (a disabled pointer would otherwise leave a
+// frozen cursor on screen).
+// NOTE: theme/size are pinned here. If you change the cursor theme in DMS, update
+// it here too (DMS still regenerates dms/cursor.kdl, but it is no longer included).
+cursor {
+    xcursor-theme "catppuccin-mocha-mauve-cursors"
+    xcursor-size 24
+    // hide-after-inactive-ms 1 // dms-pointer-toggle
+}

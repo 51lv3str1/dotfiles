@@ -50,7 +50,9 @@ include "animations/glitch/animations.kdl"
 include "overview.kdl"
 
 // cursor
-include "dms/cursor.kdl" //dms overrides
+// (using cursor.kdl instead of dms/cursor.kdl so the pointer toggle can hide the
+//  cursor; DMS still regenerates dms/cursor.kdl, but it is no longer included.)
+include "cursor.kdl"
 
 // debug
 include "debug.kdl"

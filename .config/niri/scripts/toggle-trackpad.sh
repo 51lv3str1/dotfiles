@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
-# Toggle the trackpad by commenting/uncommenting the marked 'off' node in the
-# touchpad block of inputs.kdl. niri hot-reloads the config automatically.
-# Used by both the DMS pill and the niri keybind (Mod+Shift+M).
+# Toggle the mouse and trackpad, hiding/showing the cursor accordingly, by
+# commenting/uncommenting the marked nodes in the niri config. niri hot-reloads
+# the config. Used by both the DMS pill and the niri keybind (Mod+Shift+M).
 set -euo pipefail
 
-CONF="${XDG_CONFIG_HOME:-$HOME/.config}/niri/inputs.kdl"
+NIRI="${XDG_CONFIG_HOME:-$HOME/.config}/niri"
+INPUTS="$NIRI/inputs.kdl"
+CURSOR="$NIRI/cursor.kdl"
 
-if grep -qE "^[[:space:]]*off[[:space:]]+// dms-trackpad-toggle" "$CONF"; then
-    # Trackpad OFF -> enable it (comment the 'off' node)
-    sed -i -E "s|^([[:space:]]*)off([[:space:]]+// dms-trackpad-toggle)|\1// off\2|" "$CONF"
+if grep -qE "^[[:space:]]*off[[:space:]]+// dms-pointer-toggle" "$INPUTS"; then
+    # Pointer is OFF -> enable input and show the cursor again
+    sed -i -E "s|^([[:space:]]*)off([[:space:]]+// dms-pointer-toggle)|\1// off\2|" "$INPUTS"
+    sed -i -E "s|^([[:space:]]*)hide-after-inactive-ms 1([[:space:]]+// dms-pointer-toggle)|\1// hide-after-inactive-ms 1\2|" "$CURSOR"
     echo enabled
 else
-    # Trackpad ON -> disable it (uncomment the 'off' node)
-    sed -i -E "s|^([[:space:]]*)// off([[:space:]]+// dms-trackpad-toggle)|\1off\2|" "$CONF"
+    # Pointer is ON -> disable input and hide the (now frozen) cursor
+    sed -i -E "s|^([[:space:]]*)// off([[:space:]]+// dms-pointer-toggle)|\1off\2|" "$INPUTS"
+    sed -i -E "s|^([[:space:]]*)// hide-after-inactive-ms 1([[:space:]]+// dms-pointer-toggle)|\1hide-after-inactive-ms 1\2|" "$CURSOR"
     echo disabled
 fi

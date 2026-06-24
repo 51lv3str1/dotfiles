@@ -1,8 +1,8 @@
 {
   "id": "trackpadToggle",
-  "name": "Trackpad Toggle",
-  "description": "Bar button to enable/disable the trackpad for keyboard-first workflows. Reflects the live state by reading the niri input config.",
-  "icon": "do_not_touch",
+  "name": "Pointer Toggle",
+  "description": "Bar button to enable/disable the mouse and trackpad for keyboard-first workflows. The icon shows the selected cursor theme, and reflects the live state read from the niri input config.",
+  "icon": "mouse",
   "type": "widget",
   "component": "TrackpadToggle.qml",
   "author": "silver"

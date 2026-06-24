@@ -5,12 +5,13 @@ import qs.Common
 import qs.Modules.Plugins
 import qs.Widgets
 
-// Bar button to enable/disable the trackpad.
-//   - Runs toggle-trackpad.sh (comments/uncomments the 'off' node in inputs.kdl;
-//     niri hot-reloads the config).
+// Bar button to enable/disable the mouse and trackpad (keyboard-first workflow).
+//   - Runs toggle-trackpad.sh, which comments/uncomments the marked 'off' nodes
+//     in the touchpad and mouse blocks of inputs.kdl; niri hot-reloads.
 //   - Reads inputs.kdl via FileView (watchChanges) to reflect the real state, so
 //     it also updates when toggled through the keybind (Mod+Shift+M).
-//   - Base icon plus a red "block" overlay when the trackpad is disabled.
+//   - The icon is the actual cursor image (SVG of the selected cursor theme),
+//     with a red "block" overlay when the pointer is disabled.
 BasePill {
     id: root
 
@@ -18,7 +19,17 @@ BasePill {
     readonly property string inputsPath: home + "/.config/niri/inputs.kdl"
     readonly property string scriptPath: home + "/.config/niri/scripts/toggle-trackpad.sh"
 
-    property bool trackpadDisabled: false
+    // Currently selected cursor theme (live from DMS settings).
+    readonly property string cursorTheme: {
+        const cs = SettingsData.cursorSettings;
+        if (!cs)
+            return "";
+        return cs.theme === "System Default" ? (SettingsData.systemDefaultCursorTheme || "") : (cs.theme || "");
+    }
+    // SVG source of that theme's default (arrow) cursor.
+    readonly property string cursorSvg: cursorTheme ? ("file://" + home + "/.local/share/icons/" + cursorTheme + "/cursors_scalable/default/default.svg") : ""
+
+    property bool pointerDisabled: false
 
     FileView {
         id: conf
@@ -32,39 +43,58 @@ BasePill {
 
     function _recompute() {
         const t = conf.text() || "";
-        // Uncommented 'off' node + marker => trackpad disabled.
-        root.trackpadDisabled = /(^|\n)[ \t]*off[ \t]+\/\/ dms-trackpad-toggle/.test(t);
+        // Uncommented 'off' node + marker => pointer disabled.
+        root.pointerDisabled = /(^|\n)[ \t]*off[ \t]+\/\/ dms-pointer-toggle/.test(t);
     }
 
     Process {
         id: toggleProc
         command: ["bash", root.scriptPath]
-        // The inputs.kdl change is picked up by the FileView (watchChanges),
-        // which recomputes the icon.
+        // The inputs.kdl change is picked up by the FileView (watchChanges).
     }
 
     onClicked: toggleProc.running = true
 
     content: Component {
         Item {
-            implicitWidth: baseIcon.implicitWidth
+            implicitWidth: root.widgetThickness
             implicitHeight: root.widgetThickness
 
-            // Base trackpad icon (always the same glyph).
-            DankIcon {
-                id: baseIcon
+            readonly property real iconSize: Theme.barIconSize(root.barThickness, -2, root.barConfig?.maximizeWidgetIcons, root.barConfig?.iconScale)
+
+            // Actual cursor image (SVG of the selected theme's default cursor).
+            Image {
+                id: cursorImg
                 anchors.centerIn: parent
-                name: "touch_app"
-                size: Theme.barIconSize(root.barThickness, -4, root.barConfig?.maximizeWidgetIcons, root.barConfig?.iconScale)
-                color: root.trackpadDisabled ? Theme.error : Theme.widgetIconColor
+                source: root.cursorSvg
+                // The cursor SVG is a 32x32 canvas with the arrow pinned to the
+                // top-left corner (the hotspot), so the rest is empty. Rasterize
+                // at 64x64 and clip to the arrow's region so it sits centered and
+                // sized like the other bar icons.
+                sourceSize: Qt.size(64, 64)
+                sourceClipRect: Qt.rect(0, 0, 38, 50)
+                height: parent.iconSize
+                width: parent.iconSize * 38 / 50
+                smooth: true
+                visible: status === Image.Ready
+                opacity: root.pointerDisabled ? 0.45 : 1.0
             }
 
-            // "Block" overlay shown on top when the trackpad is disabled.
+            // Fallback to a material icon if the cursor SVG can't be loaded.
             DankIcon {
                 anchors.centerIn: parent
-                visible: root.trackpadDisabled
+                visible: cursorImg.status !== Image.Ready
+                name: "mouse"
+                size: parent.iconSize
+                color: root.pointerDisabled ? Theme.error : Theme.widgetIconColor
+            }
+
+            // "Block" overlay shown on top when the pointer is disabled.
+            DankIcon {
+                anchors.centerIn: parent
+                visible: root.pointerDisabled
                 name: "block"
-                size: baseIcon.size
+                size: parent.iconSize
                 color: Theme.error
             }
         }
