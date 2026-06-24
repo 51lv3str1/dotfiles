@@ -18,9 +18,9 @@ window-rule {
     match is-active=true
     shadow {
         on
-        softness 40
-        spread 8
+        softness 28
+        spread 4
         offset x=0 y=0
-        color "#7355a6aa"
+        color "#7355a677"
     }
 }
