@@ -16,6 +16,7 @@ input {
       natural-scroll
       scroll-method "two-finger"
       click-method "clickfinger"
+      off // dms-trackpad-toggle
     }
     mouse {
     }

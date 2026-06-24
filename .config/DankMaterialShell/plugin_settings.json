@@ -1,5 +1,8 @@
 {
   "notificationPill": {
     "enabled": true
+  },
+  "trackpadToggle": {
+    "enabled": true
   }
 }

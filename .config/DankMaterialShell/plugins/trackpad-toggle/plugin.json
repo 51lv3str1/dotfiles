@@ -1,0 +1,9 @@
+{
+  "id": "trackpadToggle",
+  "name": "Trackpad Toggle",
+  "description": "Bar button to enable/disable the trackpad for keyboard-first workflows. Reflects the live state by reading the niri input config.",
+  "icon": "do_not_touch",
+  "type": "widget",
+  "component": "TrackpadToggle.qml",
+  "author": "silver"
+}

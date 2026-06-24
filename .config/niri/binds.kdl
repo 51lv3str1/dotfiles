@@ -40,6 +40,13 @@ binds {
         spawn "dms" "ipc" "call" "processlist" "toggle";
     }
 
+    // === Input ===
+    // Trackpad toggle (keyboard-first). Essential as a keybind: once the trackpad
+    // is off there is no pointer to click the pill and turn it back on.
+    Mod+Shift+M hotkey-overlay-title="Toggle Trackpad" {
+        spawn "bash" "/home/silver/.config/niri/scripts/toggle-trackpad.sh";
+    }
+
     // === Audio Controls ===
     XF86AudioRaiseVolume allow-when-locked=true {
         spawn "dms" "ipc" "call" "audio" "increment" "3";
