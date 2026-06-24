@@ -1,7 +1,7 @@
 {
   "id": "notificationPill",
   "name": "Notification Pill",
-  "description": "Versión colapsada de la notificación como pastilla en la barra, en lugar del popup intrusivo.",
+  "description": "Collapsed pill in the bar showing the latest notification, replacing the intrusive popup. Tints the bell when there are unread notifications and opens the notification center on click.",
   "icon": "notifications_active",
   "type": "widget",
   "component": "NotificationPill.qml",

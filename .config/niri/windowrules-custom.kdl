@@ -1,19 +1,19 @@
-// Overrides propios (NO gestionados por DMS).
-// Se incluye DESPUÉS de dms/windowrules.kdl en config.kdl, así que estas reglas
-// ganan: niri aplica las window-rules que coinciden en orden y la última pisa.
+// Personal overrides (NOT managed by DMS).
+// Included AFTER dms/windowrules.kdl in config.kdl so these win: niri applies
+// matching window-rules in order and the last one takes precedence.
 
-// Inactivas SIN oscurecer (1.0) para que se lean bien con muchas ventanas
-// abiertas. La opacidad de niri se multiplica con la del terminal (Alacritty
-// tiene 0.90), así que bajarla hacía ilegibles las inactivas. El foco lo marcan
-// el anillo morado + el glow, no la transparencia. (DMS por defecto pone 0.90.)
+// Inactive windows are NOT dimmed (1.0) so they stay readable with many windows
+// open. niri's opacity multiplies with the terminal's (Alacritty is at 0.90), so
+// lowering it made inactive windows illegible. Focus is conveyed by the purple
+// ring + glow, not by transparency. (DMS defaults this to 0.90.)
 window-rule {
     match is-active=false
     opacity 1.0
 }
 
-// Glow neón: sombra morada SOLO en la ventana activa (offset 0,0 = halo
-// simétrico alrededor). Las inactivas no llevan sombra, así el resplandor
-// refuerza cuál tiene el foco.
+// Neon glow: purple shadow on the active window ONLY (offset 0,0 = symmetric halo
+// all around). Inactive windows have no shadow, so the glow reinforces which one
+// has focus.
 window-rule {
     match is-active=true
     shadow {

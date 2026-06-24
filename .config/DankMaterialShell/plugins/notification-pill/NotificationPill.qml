@@ -4,11 +4,11 @@ import qs.Services
 import qs.Modules.Plugins
 import qs.Widgets
 
-// Pastilla de notificación para la DankBar.
-//   - Colapsada (sin notif): campana gris idéntica al botón de la derecha.
-//   - Activa (llega notif): avatar (imagen o campana morada) + app + summary.
-//     Se auto-oculta tras unos segundos.
-//   - Click en el cuerpo: abre el centro de notificaciones anclado a la pastilla.
+// Notification pill for the DankBar.
+//   - Collapsed (no notification): plain bell, matching the native bell button.
+//   - Active (notification arrives): avatar (image or purple bell) + app + summary.
+//     Auto-collapses after a few seconds.
+//   - Click on the body: opens the notification center anchored to this pill.
 BasePill {
     id: root
 
@@ -19,10 +19,10 @@ BasePill {
     property string summaryText: ""
     property string avatarSource: ""
 
-    // Hay notificaciones en "Current". OJO: el service hace
-    // notifications.push(wrapper) (muta in-place, NO emite señal), así que un
-    // binding no se entera del ALTA. Lo resolvemos sondeando el valor real cada
-    // poco — siempre refleja la realidad. Tiñe la campana de morado si hay.
+    // Whether there are notifications in "Current". NOTE: the service appends via
+    // notifications.push(wrapper) (in-place mutation, emits NO change signal), so a
+    // binding never sees additions. We poll the real value periodically instead —
+    // it always reflects reality. Used to tint the collapsed bell purple.
     property bool hasUnread: false
 
     Timer {
@@ -45,7 +45,7 @@ BasePill {
         }
     }
 
-    // Auto-ocultado: colapsa la pastilla (la notif queda en el centro).
+    // Auto-hide: collapses the pill (the notification stays in the center).
     Timer {
         id: hideTimer
         interval: 6000
@@ -53,7 +53,7 @@ BasePill {
         onTriggered: root.showing = false
     }
 
-    // Abre el centro de notificaciones anclado a ESTA pastilla.
+    // Opens the notification center anchored to THIS pill.
     function openNotificationCenter() {
         const loader = PopoutService.notificationCenterLoader;
         if (loader && !loader.active) {
@@ -88,9 +88,9 @@ BasePill {
                 }
             }
 
-            // Colapsada: si hay notifs sin leer, campana DENTRO de un círculo
-            // morado relleno (igual que el avatar) -> se lee claramente morado.
-            // Si no hay, campana gris normal (como el botón de la derecha).
+            // Collapsed: when there are unread notifications, the bell sits INSIDE a
+            // filled purple circle (same as the avatar) so it clearly reads purple.
+            // Otherwise, a plain grey bell (matching the native bell button).
             Item {
                 id: collapsed
                 visible: !root.showing
@@ -116,7 +116,7 @@ BasePill {
                 }
             }
 
-            // Activa: avatar (imagen o campana morada) + app + summary.
+            // Active: avatar (image or purple bell) + app + summary.
             Row {
                 id: row
                 height: root.pillH

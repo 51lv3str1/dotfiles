@@ -69,8 +69,8 @@ animations {
     }
 
     // === Window close — fluid domain-warped smoke dissolve ===
-    // 300ms para que la disolución termine junto con el reacomodo de las
-    // ventanas vecinas (spring ~250-300ms), sin desfase.
+    // 300ms so the dissolve finishes together with the neighbouring windows
+    // settling into place (spring ~250-300ms), with no lag.
     window-close {
         duration-ms 300
         curve "ease-out-cubic"
@@ -134,8 +134,8 @@ animations {
     }
 
     // === Sync group — all three must match ===
-    // Críticamente amortiguado (damping 1.0): frena sin rebote, así el reacomodo
-    // de ventanas al cerrar no "se pasa" ni desentona con la animación de cierre.
+    // Critically damped (damping 1.0): stops without overshoot, so windows
+    // settling on close don't "bounce" or clash with the close animation.
     horizontal-view-movement {
         spring damping-ratio=1.0 stiffness=1100 epsilon=0.0001
     }

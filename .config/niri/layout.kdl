@@ -39,8 +39,8 @@ layout {
     //
     // Alternatively, you can override it with a window rule called
     // `draw-border-with-background`.
-    // Borde desactivado: dejamos SOLO el focus-ring para que la ventana
-    // activa no compita con el doble contorno y las inactivas queden sin anillo.
+    // Border disabled: keep ONLY the focus-ring so the active window doesn't
+    // compete with a double outline and inactive windows have no ring at all.
     border {
         off
         width 2
@@ -48,17 +48,17 @@ layout {
         inactive-color "#d0d0d0"
         urgent-color   "#cc4444"
     }
-    // Anillo de foco "neón" en tonos morados: del morado base #7355a6 a un
-    // mauve más claro #cba6f7, interpolado en oklch (camino corto) para un
-    // degradado suave que juega dentro del morado. 4px = bien visible.
+    // "Neon" focus ring in purple tones: from the base purple #7355a6 to a
+    // lighter mauve #cba6f7, interpolated in oklch (short path) for a smooth
+    // gradient that stays within the purple range. 4px = clearly visible.
     focus-ring {
         width 4
         active-gradient from="#7355a6" to="#cba6f7" angle=45 in="oklch"
         inactive-color "#2a2a3a"
     }
-    // Sombra suave en TODAS las ventanas (drop shadow) para darles profundidad
-    // y que floten sobre el wallpaper. La activa la sobreescribe con el glow
-    // morado (ver windowrules-custom.kdl).
+    // Soft drop shadow on ALL windows to give them depth and make them float
+    // over the wallpaper. The active window overrides it with the purple glow
+    // (see windowrules-custom.kdl).
     shadow {
         on
         softness 30
@@ -66,13 +66,13 @@ layout {
         offset x=0 y=5
         color "#0007"
     }
-    // Indicador de pestañas (al agrupar columnas en tabs con Mod+W): mismo
-    // degradado morado del focus-ring para que todo combine.
+    // Tab indicator (when grouping columns into tabs with Mod+W): same purple
+    // gradient as the focus-ring so everything matches.
     tab-indicator {
         active-gradient from="#7355a6" to="#cba6f7" angle=45 in="oklch"
         inactive-color "#2a2a3a"
     }
-    // Guía translúcida que aparece al arrastrar/mover una ventana para soltarla.
+    // Translucent guide shown when dragging/moving a window to drop it.
     insert-hint {
         gradient from="#7355a680" to="#cba6f780" angle=45 in="oklch"
     }
