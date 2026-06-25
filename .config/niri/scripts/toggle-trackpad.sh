@@ -1,21 +1,24 @@
 #!/usr/bin/env bash
-# Toggle the mouse and trackpad, hiding/showing the cursor accordingly, by
-# commenting/uncommenting the marked nodes in the niri config. niri hot-reloads
-# the config. Used by both the DMS pill and the niri keybind (Mod+Shift+M).
+# Toggle the mouse and trackpad by commenting/uncommenting the marked 'off' nodes
+# in the touchpad and mouse blocks of inputs.kdl, then regenerate cursor.kdl so
+# the cursor is hidden while the pointer is disabled. niri hot-reloads the config.
+# Used by both the DMS pill and the niri keybind (Mod+Shift+M).
 set -euo pipefail
 
 NIRI="${XDG_CONFIG_HOME:-$HOME/.config}/niri"
 INPUTS="$NIRI/inputs.kdl"
-CURSOR="$NIRI/cursor.kdl"
 
 if grep -qE "^[[:space:]]*off[[:space:]]+// dms-pointer-toggle" "$INPUTS"; then
-    # Pointer is OFF -> enable input and show the cursor again
+    # Pointer OFF -> enable it (comment the 'off' nodes)
     sed -i -E "s|^([[:space:]]*)off([[:space:]]+// dms-pointer-toggle)|\1// off\2|" "$INPUTS"
-    sed -i -E "s|^([[:space:]]*)hide-after-inactive-ms 1([[:space:]]+// dms-pointer-toggle)|\1// hide-after-inactive-ms 1\2|" "$CURSOR"
-    echo enabled
+    state=enabled
 else
-    # Pointer is ON -> disable input and hide the (now frozen) cursor
+    # Pointer ON -> disable it (uncomment the 'off' nodes)
     sed -i -E "s|^([[:space:]]*)// off([[:space:]]+// dms-pointer-toggle)|\1off\2|" "$INPUTS"
-    sed -i -E "s|^([[:space:]]*)// hide-after-inactive-ms 1([[:space:]]+// dms-pointer-toggle)|\1hide-after-inactive-ms 1\2|" "$CURSOR"
-    echo disabled
+    state=disabled
 fi
+
+# Regenerate cursor.kdl to match the new pointer state (hide/show the cursor).
+"$NIRI/scripts/sync-cursor.sh"
+
+echo "$state"

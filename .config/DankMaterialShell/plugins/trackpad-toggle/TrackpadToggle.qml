@@ -17,7 +17,9 @@ BasePill {
 
     readonly property string home: Quickshell.env("HOME") || ""
     readonly property string inputsPath: home + "/.config/niri/inputs.kdl"
+    readonly property string dmsCursorPath: home + "/.config/niri/dms/cursor.kdl"
     readonly property string scriptPath: home + "/.config/niri/scripts/toggle-trackpad.sh"
+    readonly property string syncScript: home + "/.config/niri/scripts/sync-cursor.sh"
 
     // Currently selected cursor theme (live from DMS settings).
     readonly property string cursorTheme: {
@@ -51,6 +53,22 @@ BasePill {
         id: toggleProc
         command: ["bash", root.scriptPath]
         // The inputs.kdl change is picked up by the FileView (watchChanges).
+    }
+
+    // Keep cursor.kdl's theme/size in sync with the DMS-managed dms/cursor.kdl:
+    // whenever DMS rewrites it (the user changes the cursor theme), regenerate
+    // cursor.kdl via sync-cursor.sh so niri picks up the new theme automatically.
+    FileView {
+        id: dmsCursorConf
+        path: root.dmsCursorPath
+        watchChanges: true
+        onFileChanged: dmsCursorConf.reload()
+        onLoaded: syncCursorProc.running = true
+    }
+
+    Process {
+        id: syncCursorProc
+        command: ["bash", root.syncScript]
     }
 
     onClicked: toggleProc.running = true
