@@ -16,10 +16,8 @@ input {
       natural-scroll
       scroll-method "two-finger"
       click-method "clickfinger"
-      // off // dms-pointer-toggle
     }
     mouse {
-      // off // dms-pointer-toggle
     }
     trackpoint {
     }

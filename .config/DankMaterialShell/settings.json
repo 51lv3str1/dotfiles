@@ -467,7 +467,6 @@
         "clipboard",
         "cpuUsage",
         "memUsage",
-        "trackpadToggle",
         "battery",
         "controlCenterButton",
         {
