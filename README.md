@@ -164,7 +164,6 @@ sudo apt install gh
 | Keybase | .deb from web | See below |
 | VSCode | apt (Microsoft repo) | See below |
 | swayimg | apt | `sudo apt install swayimg` |
-| khal | apt | `sudo apt install khal` |
 | fprintd | apt | `sudo apt install fprintd` |
 | greetd | apt | `sudo apt install greetd` |
 | dms-greeter | apt | `sudo apt install dms-greeter` |
@@ -176,7 +175,7 @@ brew install go fzf bat btop ripgrep tmux lazygit lazydocker chafa ffmpeg imagem
 
 ### Install all apt extras at once
 ```bash
-sudo apt install wl-clipboard poppler-utils 7zip kimageformat-plugins khal fprintd swayimg
+sudo apt install wl-clipboard poppler-utils 7zip kimageformat-plugins fprintd swayimg
 ```
 
 ### Alacritty
@@ -284,7 +283,6 @@ Log out and log back in selecting **niri-session**.
 | `cliphist` | Clipboard history |
 | `qt6-multimedia` | System sound feedback |
 | `qtimageformats` | Extended image format support |
-| `khal` | Calendar integration |
 | `fprintd` | Fingerprint authentication |
 
 ### Verify installation

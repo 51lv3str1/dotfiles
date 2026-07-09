@@ -77,7 +77,6 @@ alias tkss="tmux kill-session"
 alias tls="tmux ls"
 alias ta="tmux attach"
 alias rss="eilmeldung"
-alias cal_sync="vdirsyncer sync"
 
 # ─── Shell tools ──────────────────────────────────────────────
 eval "$(starship init zsh)"
