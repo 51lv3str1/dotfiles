@@ -12,38 +12,50 @@ import qs.Widgets
 BasePill {
     id: root
 
-    readonly property var latest: NotificationService.popups.length > 0 ? NotificationService.popups[NotificationService.popups.length - 1] : null
-
     property bool showing: false
     property string appText: ""
     property string summaryText: ""
     property string avatarSource: ""
 
-    // Whether there are notifications in "Current". NOTE: the service appends via
-    // notifications.push(wrapper) (in-place mutation, emits NO change signal), so a
-    // binding never sees additions. We poll the real value periodically instead —
-    // it always reflects reality. Used to tint the collapsed bell purple.
+    // This pill is the ONLY notification surface: the native popup toast is muted
+    // via a catch-all notificationRule (action "mute") in settings.json, which sets
+    // popup=false, so NotificationService.popups stays empty. We therefore drive the
+    // pill from the notification-center list ("notifications"), which still receives
+    // every non-transient notification (transient ones are dropped by the mute rule).
+    //
+    // That list is mutated in place via .push() and emits NO change signal, so we
+    // poll it. A genuine NEW arrival is detected as a growth in count; a shrink
+    // (dismissal / clear-all) only updates the counter, so removing a notification
+    // never re-pops the pill with an older one. _seenCount = -1 means "not yet
+    // initialised": the first tick captures the baseline without popping, so
+    // pre-existing notifications don't flash the pill on shell startup.
     property bool hasUnread: false
+    property int _seenCount: -1
 
     Timer {
-        interval: 500
+        interval: 300
         repeat: true
         running: true
-        onTriggered: root.hasUnread = NotificationService.notifications.length > 0
+        onTriggered: {
+            const list = NotificationService.notifications;
+            const count = list.length;
+            root.hasUnread = count > 0;
+            if (root._seenCount >= 0 && count > root._seenCount) {
+                const latest = list[count - 1];
+                if (latest) {
+                    root.appText = (latest.notification && latest.notification.appName) || latest.appName || "";
+                    root.summaryText = latest.summary || latest.body || "";
+                    root.avatarSource = latest.image || latest.appIcon || "";
+                    root.showing = true;
+                    hideTimer.restart();
+                }
+            }
+            root._seenCount = count;
+        }
     }
 
     readonly property real pillH: root.widgetThickness
     readonly property real avatarSize: Math.max(16, pillH - 8)
-
-    onLatestChanged: {
-        if (latest) {
-            appText = (latest.notification && latest.notification.appName) || latest.appName || "";
-            summaryText = latest.summary || latest.body || "";
-            avatarSource = latest.image || latest.appIcon || "";
-            showing = true;
-            hideTimer.restart();
-        }
-    }
 
     // Auto-hide: collapses the pill (the notification stays in the center).
     Timer {
