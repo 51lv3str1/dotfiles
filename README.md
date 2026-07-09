@@ -167,6 +167,7 @@ sudo apt install gh
 | fprintd | apt | `sudo apt install fprintd` |
 | greetd | apt | `sudo apt install greetd` |
 | dms-greeter | apt | `sudo apt install dms-greeter` |
+| DankCalendar | apt (danklinux repo) | See below |
 
 ### Install all brew tools at once
 ```bash
@@ -283,6 +284,7 @@ Log out and log back in selecting **niri-session**.
 | `cliphist` | Clipboard history |
 | `qt6-multimedia` | System sound feedback |
 | `qtimageformats` | Extended image format support |
+| `dankcalendar-git` | Calendar integration — create/edit/delete events (see DankCalendar below) |
 | `fprintd` | Fingerprint authentication |
 
 ### Verify installation
@@ -327,6 +329,36 @@ dms greeter sync
 ```
 
 `dms greeter sync` syncs your user's wallpaper, theme, and settings with the greeter. Re-run after changing themes.
+
+---
+
+## 📅 DankCalendar
+
+[DankCalendar](https://danklinux.com/docs/dankcalendar/) (`dcal`) is a standalone calendar daemon from the DankLinux suite that brings Local, Google, Microsoft, CalDAV, and iCloud calendars together, with offline caching and keyring-stored credentials. DMS integrates with it to show and **create/edit/delete** events from the DankDash calendar overview.
+
+### Install
+
+`dankcalendar-git` comes from the DankLinux repo (already added for DMS):
+
+```bash
+sudo apt install dankcalendar-git
+```
+
+### Enable the daemon
+
+```bash
+systemctl --user enable --now dcal
+```
+
+DMS picks it up automatically: with `calendarBackend` set to `auto` (the default in `~/.config/DankMaterialShell/settings.json`), it switches to the native `dcal` backend as soon as the daemon's socket is up — no config change needed.
+
+### Connect accounts
+
+```bash
+dcal   # open the DankCalendar window
+```
+
+Add your calendars under **Accounts**. Events then appear in the DankDash calendar overview in DMS.
 
 ---
 
