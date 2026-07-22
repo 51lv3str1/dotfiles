@@ -32,7 +32,7 @@
   "firstDayOfWeek": -1,
   "showWeekNumber": false,
   "calendarBackend": "auto",
-  "use24HourClock": true,
+  "clockFormat": "auto",
   "showSeconds": false,
   "padHours12Hour": false,
   "useFahrenheit": false,
@@ -56,10 +56,11 @@
   "m3ElevationCustomColor": "#000000",
   "modalElevationEnabled": true,
   "popoutElevationEnabled": true,
-  "barElevationEnabled": true,
+  "barElevationEnabled": false,
   "blurEnabled": false,
   "blurForegroundLayers": true,
   "blurLayerOutlineOpacity": 0.12,
+  "blurBorderEnabled": false,
   "blurBorderColor": "outline",
   "blurBorderCustomColor": "#ffffff",
   "blurBorderOpacity": 0.35,
@@ -210,6 +211,7 @@
   "scrollTitleEnabled": true,
   "mediaAdaptiveWidthEnabled": true,
   "audioVisualizerEnabled": true,
+  "mediaUseAlbumArtAccent": false,
   "audioScrollMode": "volume",
   "audioWheelScrollAmount": 5,
   "audioDeviceScrollVolumeEnabled": false,
@@ -272,12 +274,10 @@
   "greeterEnableFprint": false,
   "greeterEnableU2f": false,
   "greeterWallpaperPath": "",
-  "greeterUse24HourClock": true,
-  "greeterShowSeconds": false,
-  "greeterPadHours12Hour": false,
   "greeterLockDateFormat": "",
   "greeterFontFamily": "",
   "greeterWallpaperFillMode": "",
+  "greeterPamExternallyManaged": false,
   "greeterSyncPending": false,
   "greeterSyncBaseline": {},
   "mediaSize": 1,
@@ -295,6 +295,7 @@
   "spotlightSectionViewModes": {},
   "appDrawerSectionViewModes": {},
   "niriOverviewOverlayEnabled": true,
+  "niriOverviewLauncherStyle": "full",
   "dankLauncherV2Size": "compact",
   "dankLauncherV2ShowSourceBadges": true,
   "dankLauncherV2BorderEnabled": false,
@@ -501,6 +502,7 @@
   "notificationOverlayEnabled": false,
   "notificationPopupShadowEnabled": true,
   "notificationPopupPrivacyMode": false,
+  "notificationForegroundLayers": true,
   "modalDarkenBackground": true,
   "lockScreenShowPowerActions": true,
   "lockScreenShowSystemIcons": true,
@@ -515,6 +517,11 @@
   "maxFprintTries": 3,
   "enableU2f": false,
   "u2fMode": "or",
+  "lockPamPath": "",
+  "lockPamInlineFprint": false,
+  "lockPamInlineU2f": false,
+  "lockPamExternallyManaged": false,
+  "lockU2fPamPath": "",
   "lockScreenInactiveColor": "#000000",
   "lockScreenNotificationMode": 0,
   "lockScreenVideoEnabled": false,
@@ -587,6 +594,7 @@
   "updaterIntervalSeconds": 1800,
   "updaterIncludeFlatpak": true,
   "updaterAllowAUR": true,
+  "updaterIgnoredPackages": [],
   "displayNameMode": "system",
   "screenPreferences": {
     "notifications": []
@@ -618,15 +626,7 @@
         {
           "id": "workspaceSwitcher",
           "enabled": true
-        }
-      ],
-      "centerWidgets": [
-        "music",
-        "clock",
-        "weather",
-        "notificationPill"
-      ],
-      "rightWidgets": [
+        },
         "systemTray",
         "clipboard",
         "cpuUsage",
@@ -638,6 +638,13 @@
           "enabled": true
         }
       ],
+      "centerWidgets": [
+        "music",
+        "clock",
+        "weather",
+        "notificationPill"
+      ],
+      "rightWidgets": [],
       "spacing": 4,
       "innerPadding": 4,
       "bottomGap": 0,
