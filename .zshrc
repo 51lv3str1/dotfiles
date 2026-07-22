@@ -35,6 +35,23 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   # clipboard
   alias clip="pbcopy"
 
+  # clipboard de archivos: copia el/los archivo(s) como objeto (pega en Finder/apps con ⌘V)
+  clipf() {
+    emulate -L zsh
+    (( $# )) || { print -u2 "clipf: uso: clipf <archivo> [archivo...]"; return 2 }
+    local -a files; local f abs
+    for f in "$@"; do
+      abs=${f:A}
+      [[ -e $abs ]] || { print -u2 "clipf: no existe: $f"; return 1 }
+      files+=("POSIX file \"$abs\"")
+    done
+    if (( ${#files} == 1 )); then
+      osascript -e "set the clipboard to ${files[1]}"
+    else
+      osascript -e "set the clipboard to {${(j:, :)files}}"
+    fi
+  }
+
   # System
   alias update="brew update && brew upgrade && brew cleanup && cargo install-update -a"
 
@@ -46,6 +63,19 @@ else
 
   # clipboard
   alias clip="wl-copy"
+
+  # clipboard de archivos: copia el/los archivo(s) como objeto (pega en file managers/apps con Ctrl+V)
+  clipf() {
+    emulate -L zsh
+    (( $# )) || { print -u2 "clipf: uso: clipf <archivo> [archivo...]"; return 2 }
+    local -a uris; local f abs
+    for f in "$@"; do
+      abs=${f:A}
+      [[ -e $abs ]] || { print -u2 "clipf: no existe: $f"; return 1 }
+      uris+=("file://${abs// /%20}")
+    done
+    printf '%s\r\n' "${uris[@]}" | wl-copy --type text/uri-list
+  }
 
   # Homebrew
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
