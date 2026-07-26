@@ -138,3 +138,8 @@ case "$OSTYPE" in
 esac
 [[ -n "$_os_rc" && -r "$_os_rc" ]] && source "$_os_rc"
 unset _os_rc
+
+# ── starship prompt (portable) ──
+# Config lives at ~/.config/starship.toml. Its glyphs need a Nerd Font
+# selected in the terminal.
+command -v starship >/dev/null 2>&1 && eval "$(starship init bash)"

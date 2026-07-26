@@ -38,7 +38,8 @@ To unlink a package: `stow -D <pkg>`. To re-link after adding files: `stow -R <p
 | `bash`  | `~/.bashrc`        | Same portable env blocks as zsh (fallback shell); sources the `shell` includes |
 | `git`   | `~/.gitconfig`     | User identity (name + email) |
 | `shell` | `~/.config/shell/` | Cross-shell includes: `common.sh` (shared env) + `linux.sh` / `macos.sh` (per-OS env, aliases, functions), sourced by `$OSTYPE` |
-| `alacritty` | `~/.config/alacritty/` | Alacritty terminal config (`alacritty.toml`): Catppuccin Mocha theme, no font family pinned (uses the system monospace) so it's portable |
+| `alacritty` | `~/.config/alacritty/` | Alacritty terminal config (`alacritty.toml`): Catppuccin Mocha theme, DepartureMono Nerd Font, plus cursor/mouse/bell tweaks and copy/paste/font/scroll keybindings |
+| `starship` | `~/.config/starship.toml` | [Starship](https://starship.rs) prompt config (Catppuccin Mocha palette). Init lines live in `.zshrc`/`.bashrc`; needs a Nerd Font in the terminal for its glyphs |
 
 ## Cross-platform env blocks (in `.zshrc` and `.bashrc`)
 

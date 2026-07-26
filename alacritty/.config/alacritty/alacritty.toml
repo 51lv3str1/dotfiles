@@ -13,7 +13,12 @@ opacity = 0.90
 history = 3023
 
 [font]
-# Only the size is set; family is intentionally left to the system default.
+# DepartureMono Nerd Font (a Nerd Font, so the Starship prompt glyphs render).
+# Note: this font ships Regular only; the bold/italic faces fall back to
+# Regular, so bold/italic text shows no real weight change.
+normal = { family = "DepartureMono Nerd Font", style = "Regular" }
+bold   = { family = "DepartureMono Nerd Font", style = "Bold" }
+italic = { family = "DepartureMono Nerd Font", style = "Italic" }
 size = 13.0
 
 [cursor]
