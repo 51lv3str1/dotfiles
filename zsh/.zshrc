@@ -103,13 +103,21 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-# brew (needed in zsh so Homebrew tools are on the PATH)
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+# ── Homebrew (portable: macOS arm64/x86_64 + Linux) ──
+# Source shellenv from whichever prefix exists; skipped where brew isn't installed.
+for _brew in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
+  [[ -x "$_brew" ]] && eval "$("$_brew" shellenv)" && break
+done
+unset _brew
 
-# rustup is keg-only under brew; put its bin + the cargo toolchain shims on PATH.
-# Uses $HOMEBREW_PREFIX (set by brew shellenv) so this line is portable across macOS/Linux.
-export PATH="$HOMEBREW_PREFIX/opt/rustup/bin:$HOME/.cargo/bin:$PATH"
+# ── rustup (keg-only under brew) + cargo shims on PATH ──
+# ~/.cargo/bin is where `cargo install` drops binaries on every OS.
+export PATH="$HOME/.cargo/bin:$PATH"
+[[ -n "$HOMEBREW_PREFIX" && -d "$HOMEBREW_PREFIX/opt/rustup/bin" ]] \
+  && export PATH="$HOMEBREW_PREFIX/opt/rustup/bin:$PATH"
 
-# Native systemd socket-activated ssh-agent (DE-agnostic).
-# Forced here to override gnome-keyring's hijack under GNOME.
-export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/openssh_agent"
+# ── ssh-agent socket (Linux/systemd only) ──
+# macOS uses launchd's agent; Git Bash / MSYS / others keep their own. Only set
+# it when the systemd user socket actually exists.
+[[ "$OSTYPE" == linux* && -S "${XDG_RUNTIME_DIR}/openssh_agent" ]] \
+  && export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/openssh_agent"
