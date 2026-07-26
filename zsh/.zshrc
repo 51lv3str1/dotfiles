@@ -70,7 +70,7 @@ ZSH_THEME="robbyrussell"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
+plugins=(git dotenv)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -121,3 +121,12 @@ export PATH="$HOME/.cargo/bin:$PATH"
 # it when the systemd user socket actually exists.
 [[ "$OSTYPE" == linux* && -S "${XDG_RUNTIME_DIR}/openssh_agent" ]] \
   && export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/openssh_agent"
+
+# ── Shell includes: shared + per-OS (see ~/.config/shell/) ──
+[[ -r "$HOME/.config/shell/common.sh" ]] && source "$HOME/.config/shell/common.sh"
+case "$OSTYPE" in
+  darwin*) _os_rc="$HOME/.config/shell/macos.sh" ;;
+  linux*)  _os_rc="$HOME/.config/shell/linux.sh" ;;
+esac
+[[ -n "$_os_rc" && -r "$_os_rc" ]] && source "$_os_rc"
+unset _os_rc

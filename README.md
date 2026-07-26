@@ -34,9 +34,10 @@ To unlink a package: `stow -D <pkg>`. To re-link after adding files: `stow -R <p
 
 | Package | Links to | Contents |
 |---|---|---|
-| `zsh`  | `~/.zshrc`    | Oh My Zsh setup + the portable env blocks below |
-| `bash` | `~/.bashrc`   | Same portable env blocks as zsh (fallback shell) |
-| `git`  | `~/.gitconfig`| User identity (name + email) |
+| `zsh`   | `~/.zshrc`         | Oh My Zsh setup + the portable env blocks below; sources the `shell` includes |
+| `bash`  | `~/.bashrc`        | Same portable env blocks as zsh (fallback shell); sources the `shell` includes |
+| `git`   | `~/.gitconfig`     | User identity (name + email) |
+| `shell` | `~/.config/shell/` | Cross-shell includes: `common.sh` (shared env) + `linux.sh` / `macos.sh` (per-OS env, aliases, functions), sourced by `$OSTYPE` |
 
 ## Cross-platform env blocks (in `.zshrc` and `.bashrc`)
 
