@@ -41,6 +41,7 @@ To unlink a package: `stow -D <pkg>`. To re-link after adding files: `stow -R <p
 | `alacritty` | `~/.config/alacritty/` | Alacritty config: `alacritty.toml` (DepartureMono Nerd Font, cursor/mouse/bell tweaks, copy/paste/font/scroll keybindings) which imports `catppuccin-mocha.toml` (official Catppuccin Mocha theme) |
 | `starship` | `~/.config/starship.toml` | [Starship](https://starship.rs) prompt config (Catppuccin Mocha palette). Init lines live in `.zshrc`/`.bashrc`; needs a Nerd Font in the terminal for its glyphs |
 | `nvim` | `~/.config/nvim/` | Neovim config based on the [LazyVim](https://www.lazyvim.org) starter (lazy.nvim). Only change from upstream: `lua/plugins/colorscheme.lua` overrides the default theme with Catppuccin Mocha. Plugins self-install on first launch (needs git + network); a C compiler is needed for treesitter parsers |
+| `tmux` | `~/.tmux.conf` | tmux config, self-contained (no plugin manager): true-color, mouse, 1-based windows, `prefix + r` reload, `\|`/`-` splits, and a hand-written Catppuccin Mocha statusline matching Alacritty/starship |
 
 ## Cross-platform env blocks (in `.zshrc` and `.bashrc`)
 
