@@ -271,3 +271,11 @@ include optional=true "dms/alttab.kdl"
 include optional=true "dms/binds.kdl"
 include optional=true "dms/outputs.kdl"
 include optional=true "dms/cursor.kdl"
+
+// === Custom overrides ===
+// Kept in a separate file and included LAST on purpose: niri includes are
+// positional (last occurrence wins, merged field-by-field), so this overrides
+// the DMS-generated dms/layout.kdl without editing that auto-generated file.
+// A separate file is required because niri forbids two `layout` nodes in one
+// file (config.kdl already has a layout block above).
+include optional=true "custom-overrides.kdl"

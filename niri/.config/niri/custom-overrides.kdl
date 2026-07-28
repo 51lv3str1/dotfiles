@@ -1,0 +1,10 @@
+// Custom niri overrides — NOT managed by DMS.
+// Included last from config.kdl so these values win over the auto-generated
+// dms/*.kdl files (niri includes are positional: last occurrence wins, merged
+// field-by-field). Put your own tweaks here instead of editing dms/*.kdl.
+
+layout {
+    // Window gaps in logical pixels.
+    // Ported from 51lv3str1/dotfiles niri layout.kdl (DMS default was 4).
+    gaps 10
+}
