@@ -54,6 +54,7 @@ To unlink everything: `stow -D .`. To re-link after adding files: `stow -R --no-
 | Config | Path under `$HOME` | Notes |
 |---|---|---|
 | zsh | `~/.zshrc` | Oh My Zsh setup + the portable env blocks below; sources the `shell` includes |
+| zshenv | `~/.zshenv` | Sourced for ALL zsh invocations (incl. non-interactive scripts): puts `~/.cargo/bin` on PATH so tools find cargo binaries. Sources rustup's `~/.cargo/env` when present, else guarded fallback |
 | bash | `~/.bashrc` | Same portable env blocks as zsh (fallback shell); sources the `shell` includes |
 | git | `~/.gitconfig` | User identity (name + email) + git-lfs filter |
 | shell | `~/.config/shell/` | Cross-shell includes: `common.sh` (shared env) + `linux.sh` / `macos.sh` (per-OS env, aliases, functions), sourced by `$OSTYPE` |
