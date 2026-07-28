@@ -159,6 +159,10 @@ overview {
 // This line starts waybar, a commonly used bar for Wayland compositors.
 environment {
   XDG_CURRENT_DESKTOP "niri"
+  // niri runs as a systemd user service with a minimal PATH, so binaries under
+  // ~/.cargo/bin and linuxbrew are not found by `spawn` (e.g. Mod+T -> alacritty,
+  // installed via cargo). Prepend the user bin dirs to niri's spawn PATH.
+  PATH "/home/silver/.cargo/bin:/home/silver/.local/bin:/home/linuxbrew/.linuxbrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games"
 }
 hotkey-overlay {
     skip-at-startup
