@@ -81,3 +81,12 @@ window-rule {
         color "#7355a677"
     }
 }
+
+// Force these apps to open tiled, never floating. Nautilus was pulled into the
+// floating group in config.kdl, and the AWS VPN Client requests floating on its
+// own; open-floating false overrides both. app-ids taken from `niri msg windows`.
+window-rule {
+    match app-id=r#"^org\.gnome\.Nautilus$"#
+    match app-id=r#"^AWS VPN Client$"#
+    open-floating false
+}
