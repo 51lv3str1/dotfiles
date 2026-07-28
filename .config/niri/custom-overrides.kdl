@@ -61,12 +61,16 @@ layout {
 window-rule {
     match is-active=false
     opacity 1.0
+    // No shadow on inactive windows, so the purple glow on the active one is the
+    // only shadow and clearly marks focus.
+    shadow {
+        off
+    }
 }
 
 // Neon glow: purple shadow on the active window ONLY (offset 0,0 = symmetric halo
-// all around). This overrides the general shadow set in the layout block above,
-// so the active window gets the purple halo while inactive ones keep the neutral
-// drop shadow.
+// all around). Inactive windows have no shadow (rule above), so the glow is the
+// sole shadow and reinforces which window has focus.
 window-rule {
     match is-active=true
     shadow {
