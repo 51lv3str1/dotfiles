@@ -48,3 +48,32 @@ layout {
         gradient from="#7355a680" to="#cba6f780" angle=45 in="oklch"
     }
 }
+
+// === Window rules (ported from 51lv3str1/dotfiles windowrules-custom.kdl) ===
+// window-rule is a multipart section: niri applies matching rules in order and
+// the last match wins. These live after the dms/* includes so they take
+// precedence over the DMS-generated rules.
+
+// Inactive windows are NOT dimmed (1.0) so they stay readable with many windows
+// open. niri's opacity multiplies with the terminal's own (Alacritty is at 0.90),
+// so lowering it made inactive windows illegible. Focus is shown by the purple
+// ring + glow, not by transparency. (DMS defaults this to 0.90.)
+window-rule {
+    match is-active=false
+    opacity 1.0
+}
+
+// Neon glow: purple shadow on the active window ONLY (offset 0,0 = symmetric halo
+// all around). This overrides the general shadow set in the layout block above,
+// so the active window gets the purple halo while inactive ones keep the neutral
+// drop shadow.
+window-rule {
+    match is-active=true
+    shadow {
+        on
+        softness 28
+        spread 4
+        offset x=0 y=0
+        color "#7355a677"
+    }
+}
