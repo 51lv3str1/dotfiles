@@ -5,6 +5,17 @@
 # present on both macOS and Linux.
 export PATH="$HOME/.local/bin:$PATH"
 
+# ── pkg-config: Homebrew libraries ───────────────────────────────────────────
+# Rust `-sys` crates (openssl-sys, libgit2-sys, …) and other native builds find
+# libraries via pkg-config. `brew shellenv` does NOT set PKG_CONFIG_PATH, and
+# keg-only formulae like openssl@3 keep their `.pc` under opt/, not the shared
+# lib/pkgconfig — so `cargo install`/`cargo install-update -a` fail with
+# "openssl was not found". Add both paths. Guarded on $HOMEBREW_PREFIX (set by
+# brew shellenv in the rc), so it is a no-op where brew isn't installed.
+if [ -n "$HOMEBREW_PREFIX" ]; then
+  export PKG_CONFIG_PATH="$HOMEBREW_PREFIX/opt/openssl@3/lib/pkgconfig:$HOMEBREW_PREFIX/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+fi
+
 # ── Modern CLI tools (Homebrew) ──────────────────────────────────────────────
 # Extra aliases under their OWN names — the native `ls`/`cat` are left untouched
 # on purpose, so scripts and tools that rely on the originals keep working.
