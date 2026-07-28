@@ -7,4 +7,44 @@ layout {
     // Window gaps in logical pixels.
     // Ported from 51lv3str1/dotfiles niri layout.kdl (DMS default was 4).
     gaps 10
+
+    // Everything below is ported from 51lv3str1/dotfiles niri layout.kdl.
+    // NOTE: this overrides the matugen-generated dms/colors.kdl for these
+    // elements, so they no longer follow the wallpaper — they stay a fixed
+    // purple (Catppuccin mauve #cba6f7 / base #7355a6). The DankMaterialShell
+    // top bar is intentionally untouched.
+
+    // Border disabled: the focus-ring below is the only window outline.
+    border {
+        off
+    }
+
+    // "Neon" purple focus-ring: base purple #7355a6 -> lighter mauve #cba6f7,
+    // interpolated in oklch. width 4 makes the active window clearly visible.
+    focus-ring {
+        width 4
+        active-gradient from="#7355a6" to="#cba6f7" angle=45 in="oklch"
+        inactive-color "#2a2a3a"
+    }
+
+    // Soft drop shadow on all windows (enabled with `on`; params were already
+    // present but the shadow was off without it).
+    shadow {
+        on
+        softness 30
+        spread 5
+        offset x=0 y=5
+        color "#0007"
+    }
+
+    // Tab indicator (Mod+W tabbed columns): same purple gradient.
+    tab-indicator {
+        active-gradient from="#7355a6" to="#cba6f7" angle=45 in="oklch"
+        inactive-color "#2a2a3a"
+    }
+
+    // Translucent purple guide shown when dragging a window to a drop spot.
+    insert-hint {
+        gradient from="#7355a680" to="#cba6f780" angle=45 in="oklch"
+    }
 }
