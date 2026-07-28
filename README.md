@@ -1,10 +1,11 @@
 # dotfiles
 
 Personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/).
-Each top-level directory is a **Stow package** that mirrors the layout under
-`$HOME`; stowing a package symlinks its files into place. Written to be
-**cross-platform** — the same files work on macOS (Apple Silicon & Intel) and
-Linux, and degrade cleanly on Git Bash / MSYS where a tool isn't present.
+The repository root mirrors the layout under `$HOME`, so the repo **is** a single
+Stow package: `stow .` symlinks everything into place at once (all-or-nothing).
+Written to be **cross-platform** — the same files work on macOS (Apple Silicon &
+Intel) and Linux, and degrade cleanly on Git Bash / MSYS where a tool isn't
+present.
 
 ## Requirements
 
@@ -16,35 +17,53 @@ Linux, and degrade cleanly on Git Bash / MSYS where a tool isn't present.
 brew install stow
 git clone <this-repo> ~/dotfiles
 cd ~/dotfiles
-stow zsh bash git        # or: stow */   (stows every package)
+stow --no-folding .
 ```
+
+`stow .` targets `$HOME` (Stow's default target is the parent of the stow
+directory, and the repo lives at `~/dotfiles`). Stow's built-in ignore list
+skips `.git/`, the root `README.md`, and `LICENSE` so they are never linked.
+
+`--no-folding` makes Stow link **every file individually** instead of symlinking
+whole directories. This keeps real directories real, so:
+
+- shared config dirs (e.g. `~/.config/gtk-3.0`, which also holds a non-tracked
+  `bookmarks`) keep their own files, and
+- tools that generate runtime state next to their config (DMS, nvim) write those
+  new files into `$HOME`, not into the repo.
 
 Stow refuses to overwrite an existing **real** file (only symlinks are safe).
-If a target already exists, move it into the package first, then stow:
+If a target already exists, move it into the repo (mirroring its `$HOME` path)
+first, then re-stow:
 
 ```sh
-mkdir -p ~/dotfiles/<pkg>
-mv ~/.<file> ~/dotfiles/<pkg>/.<file>
-cd ~/dotfiles && stow <pkg>
+mkdir -p ~/dotfiles/.config/<app>
+mv ~/.config/<app>/<file> ~/dotfiles/.config/<app>/<file>
+cd ~/dotfiles && stow -R --no-folding .
 ```
 
-To unlink a package: `stow -D <pkg>`. To re-link after adding files: `stow -R <pkg>`.
+To unlink everything: `stow -D .`. To re-link after adding files: `stow -R --no-folding .`.
 
-## Packages
+> **Trade-off — all-or-nothing.** With a single package there is no selective
+> install: `stow .` links *every* config, so on a minimal or macOS-only machine
+> you also link the Linux/desktop bits (niri, DankMaterialShell). That is the
+> intended simplicity of this layout.
 
-| Package | Links to | Contents |
+## What's inside
+
+| Config | Path under `$HOME` | Notes |
 |---|---|---|
-| `zsh`   | `~/.zshrc`         | Oh My Zsh setup + the portable env blocks below; sources the `shell` includes |
-| `bash`  | `~/.bashrc`        | Same portable env blocks as zsh (fallback shell); sources the `shell` includes |
-| `git`   | `~/.gitconfig`     | User identity (name + email) |
-| `shell` | `~/.config/shell/` | Cross-shell includes: `common.sh` (shared env) + `linux.sh` / `macos.sh` (per-OS env, aliases, functions), sourced by `$OSTYPE` |
-| `alacritty` | `~/.config/alacritty/` | Alacritty config: `alacritty.toml` (DepartureMono Nerd Font, cursor/mouse/bell tweaks, copy/paste/font/scroll keybindings) which imports `catppuccin-mocha.toml` (official Catppuccin Mocha theme) |
-| `starship` | `~/.config/starship.toml` | [Starship](https://starship.rs) prompt config (Catppuccin Mocha palette). Init lines live in `.zshrc`/`.bashrc`; needs a Nerd Font in the terminal for its glyphs |
-| `nvim` | `~/.config/nvim/` | Neovim config based on the [LazyVim](https://www.lazyvim.org) starter (lazy.nvim). Only change from upstream: `lua/plugins/colorscheme.lua` overrides the default theme with Catppuccin Mocha. Plugins self-install on first launch (needs git + network); a C compiler is needed for treesitter parsers |
-| `tmux` | `~/.tmux.conf` | tmux config, self-contained (no plugin manager): true-color, mouse, 1-based windows, `prefix + r` reload, `\|`/`-` splits, and a hand-written Catppuccin Mocha statusline matching Alacritty/starship |
-| `claude` | `~/.claude/CLAUDE.md` | Global Claude Code instructions, shared across machines. Stows **only** `CLAUDE.md` — the rest of `~/.claude` (settings, projects, memory) is machine-specific and stays untracked |
-| `dank` | `~/.config/DankMaterialShell/`, `~/.config/gtk-{3,4}.0/dank-colors.css`, `~/.local/share/color-schemes/DankMatugen*.colors` | [DankMaterialShell](https://danklinux.com) (DMS, a Quickshell config running on the `dms`/`quickshell` system binaries — there is no separate user Quickshell config). Tracks the hand-made `settings.json` (bar/widget layout) plus the Matugen-**generated** theme files (`firefox.css`, GTK color CSS, KDE color schemes). Stowed with `--no-folding` so shared dirs like `gtk-3.0` keep their own files. Runtime state (`.firstlaunch`, `.changelog-1.5`, `~/.local/state/DankMaterialShell`, `dankcal.db`) is **not** tracked |
-| `niri` | `~/.config/niri/` | [niri](https://github.com/YaLTeR/niri) compositor config: the hand-written `config.kdl` plus `dms/*.kdl` (DMS↔niri integration — binds, colors, layout, outputs, cursor, …) |
+| zsh | `~/.zshrc` | Oh My Zsh setup + the portable env blocks below; sources the `shell` includes |
+| bash | `~/.bashrc` | Same portable env blocks as zsh (fallback shell); sources the `shell` includes |
+| git | `~/.gitconfig` | User identity (name + email) + git-lfs filter |
+| shell | `~/.config/shell/` | Cross-shell includes: `common.sh` (shared env) + `linux.sh` / `macos.sh` (per-OS env, aliases, functions), sourced by `$OSTYPE` |
+| alacritty | `~/.config/alacritty/` | `alacritty.toml` (DepartureMono Nerd Font, cursor/mouse/bell tweaks, copy/paste/font/scroll keybindings) importing `catppuccin-mocha.toml` (official Catppuccin Mocha theme) |
+| starship | `~/.config/starship.toml` | [Starship](https://starship.rs) prompt (Catppuccin Mocha). Init lines live in `.zshrc`/`.bashrc`; needs a Nerd Font for its glyphs |
+| nvim | `~/.config/nvim/` | Neovim config from the [LazyVim](https://www.lazyvim.org) starter (lazy.nvim). Only change from upstream: `lua/plugins/colorscheme.lua` sets Catppuccin Mocha. Plugins self-install on first launch (needs git + network); treesitter parsers need a C compiler |
+| tmux | `~/.tmux.conf` | Self-contained (no plugin manager): true-color, mouse, 1-based windows, `prefix + r` reload, `\|`/`-` splits, hand-written Catppuccin Mocha statusline |
+| claude | `~/.claude/CLAUDE.md` | Global Claude Code instructions. Only `CLAUDE.md` is tracked — the rest of `~/.claude` (settings, projects, memory) is machine-specific and stays untracked |
+| dank | `~/.config/DankMaterialShell/`, `~/.config/gtk-{3,4}.0/dank-colors.css`, `~/.local/share/color-schemes/DankMatugen*.colors` | [DankMaterialShell](https://danklinux.com) (DMS, a Quickshell config running on the `dms`/`quickshell` system binaries — there is no separate user Quickshell config). Tracks the hand-made `settings.json` (bar/widget layout) plus the Matugen-**generated** theme files (`firefox.css`, GTK color CSS, KDE color schemes). Runtime state (`.firstlaunch`, `.changelog-1.5`, `~/.local/state/DankMaterialShell`, `dankcal.db`) is **not** tracked |
+| niri | `~/.config/niri/` | [niri](https://github.com/YaLTeR/niri) compositor config: `config.kdl`, the DMS-generated `dms/*.kdl` (binds, colors, layout, outputs, …), and `custom-overrides.kdl` — hand-made overrides included **last** so they win over DMS (niri includes are positional; e.g. `gaps 10`) without editing the auto-generated files |
 
 ## Cross-platform env blocks (in `.zshrc` and `.bashrc`)
 
@@ -74,5 +93,8 @@ These are written once, identically, in both shells:
   (on wallpaper/theme change or DMS update). Most tools rewrite in place, so the
   changes flow through the symlink into the repo; but if one replaces a file
   atomically it will clobber the symlink with a real file — re-stow with
-  `cd ~/dotfiles && stow -R dank niri` to restore the links, then commit the
+  `cd ~/dotfiles && stow -R --no-folding .` to restore the links, then commit the
   regenerated content.
+- Put niri tweaks that would collide with DMS-generated files in
+  `~/.config/niri/custom-overrides.kdl` (included last, so it wins and survives
+  DMS regeneration).
