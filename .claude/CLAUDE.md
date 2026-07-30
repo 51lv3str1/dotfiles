@@ -8,6 +8,8 @@ When something is not defined, ask — never assume the choice on the user's beh
 
 At the first blocker you don't resolve on the first attempt, stop theorizing and consult concrete sources — first the local ones (code, man pages, docs), then the internet. This is not optional.
 
+Never fix a symptom. When something looks wrong, first decide where the root cause lives: is it our code (then fix the cause, not the surface), or is the symptom expected behaviour driven by something outside our control that we simply have to accommodate? Say which of the two it is before you act. Never contort configuration, inputs, tests, or examples to make a symptom disappear while the underlying cause stands.
+
 When the user asks a question, only answer it — take no other action.
 
 Only run `sudo` commands when I explicitly ask you to run that specific command with elevated privileges. Never invoke `sudo` on your own initiative — if a step needs root and I haven't asked you to run it, hand me the exact command to run myself and wait for me to do it.
