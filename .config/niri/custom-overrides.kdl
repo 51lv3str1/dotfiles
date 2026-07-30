@@ -81,3 +81,12 @@ window-rule {
         color "#7355a677"
     }
 }
+
+// AWS VPN Client requests floating on its own; force it to open tiled.
+// app-id taken from `niri msg windows`. This rule lives after the dms/*
+// includes so it wins. (Re-added: a prior revert removed it on the wrong
+// assumption that the app would tile by default — it does not.)
+window-rule {
+    match app-id=r#"^AWS VPN Client$"#
+    open-floating false
+}
