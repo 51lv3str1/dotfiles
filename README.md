@@ -129,13 +129,22 @@ Deliberately NOT from brew:
 - **niri and DankMaterialShell** -- a compositor and its shell. Not packaged by
   brew, and not on crates.io either: the `niri` crate there is an empty 0.0.0
   name reservation. See below.
+- **Anything that exists on only one of the platforms.** Brew earns its keep
+  by holding one inventory for all four machines; a formula that cannot be
+  installed on three of them buys nothing and hides the fact that the tool is
+  platform-specific. Those go through the platform's own manager.
 
 ## Linux only
 
-    sudo apt install zsh libfreetype-dev libfontconfig1-dev \
+    sudo apt install zsh wl-clipboard libfreetype-dev libfontconfig1-dev \
                      libxkbcommon-dev libxcb-xfixes0-dev
 
 The last four are only needed to build Alacritty from source with cargo.
+
+`wl-clipboard` gives `wl-copy` and `wl-paste`, which is how anything outside
+the terminal reaches the system clipboard under Wayland. Wayland only: macOS
+has `pbcopy`, and WSL has `clip.exe`. Whatever uses it has to pick at
+runtime, so probe with `command -v` rather than assuming.
 
 `.config/environment.d/10-path.conf` puts `~/.cargo/bin` on the PATH the
 systemd user manager hands to desktop applications; without it the session
