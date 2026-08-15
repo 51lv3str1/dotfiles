@@ -67,17 +67,3 @@ Two caveats:
 - Your Bash tool runs `bash`. That's expected -- don't work around it.
 - Config sourced by both shells must stay POSIX; my dotfiles are shared with
   machines where bash is still the login shell.
-
-## Packages: Homebrew
-
-Install CLI tools with **Homebrew**, whatever the OS. It's the only package
-manager available on every machine I use, so it keeps one inventory and one
-upgrade path. Reach for it by default -- even when the system package manager
-already ships the tool, and even when the system copy would be smaller or pull
-fewer dependencies. Don't offer that as the lighter option; I've already
-weighed it.
-
-Exceptions, both deliberate: system-level packages (drivers, services,
-libraries that link against the OS), and the login shell, which comes from the
-system everywhere -- a login shell under the brew prefix means a broken prefix
-breaks login.
