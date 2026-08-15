@@ -19,6 +19,7 @@ bare tty where anything else is garbage.
 | `.zshrc`, `.zshenv`, `.zprofile` | same | login shell |
 | `.bashrc`, `.profile` | same | kept working as a fallback |
 | `.config/starship.toml` | same | one prompt for both shells |
+| `.tmux.conf` | same | truecolor for named terminals only |
 | `.config/alacritty/` | same | config and the generated DMS theme |
 | `.config/niri/` | same | compositor, plus the `dms/` fragments it includes |
 | `.local/share/fonts/` | same | Departure Mono, see below |
@@ -56,8 +57,12 @@ lands inside this repo. That is how the DankMaterialShell installer came to
 overwrite a tracked `alacritty.toml`: `~/.config/alacritty` is one of those
 folded directories.
 
-Currently folded: `.config/alacritty` and `.config/niri`. Everything else
-links file by file, because the parent already exists.
+Everything else links file by file, because the parent already exists. Which
+directories are folded right now:
+
+    find ~ -maxdepth 3 -lname '*dotfiles*' -xtype d
+
+GNU find only; macOS has no `-xtype`.
 
 ## Machine-specific settings
 
@@ -73,7 +78,7 @@ sourced last:
 Homebrew everywhere it can be, since it is the only package manager common to
 every machine.
 
-    brew install chafa cmake gh pkgconf rustup starship stow tmux \
+    brew install chafa cmake gh neovim pkgconf rustup starship stow tmux \
                  zsh-autosuggestions zsh-syntax-highlighting bitwarden-cli
     brew install --cask claude-code
 
@@ -84,40 +89,36 @@ Rust toolchain, then the binaries built from crates.io:
 
 ### Inventory
 
-Snapshot of the Debian desktop, 2026-08-15. Use it when bringing another
-machine in line: install what is missing, and drop anything installed there
-by another means so all four stay on one source.
+Use this when bringing another machine in line: install what is missing, and
+drop anything installed there by another means so all four stay on one
+source.
 
-From brew, requested explicitly. Another 88 formulas come along as
-dependencies -- `brew leaves` is the list that matters, `brew list --formula`
-is everything.
+From brew, requested explicitly. Everything else brew lists came along as a
+dependency -- `brew leaves` is the list that matters, `brew list --formula`
+is that plus the dependencies.
 
-| Formula | Version | Why |
-|---|---|---|
-| `bitwarden-cli` | 2026.7.0 | secrets, kept out of this repo |
-| `chafa` | 1.18.2 | images as terminal characters; works at 8 colours |
-| `cmake` | 4.4.2 | build dependency for crates that ship C |
-| `gh` | 2.97.0 | GitHub auth and PRs |
-| `pkgconf` | 3.0.5 | lets cargo find system libraries |
-| `rustup` | 1.29.0_2 | keg-only; `env.sh` adds its shims to PATH |
-| `starship` | 1.26.0 | the prompt |
-| `stow` | 2.4.1 | installs this repo |
-| `tmux` | 3.7b | multiplexer; no config tracked here yet |
-| `zsh-autosuggestions` | 0.7.1 | sourced by `.zshrc` |
-| `zsh-syntax-highlighting` | 0.8.0 | sourced last by `.zshrc`, order matters |
+| Formula | Why |
+|---|---|
+| `bitwarden-cli` | secrets, kept out of this repo |
+| `chafa` | images as terminal characters; works at 8 colours |
+| `cmake` | build dependency for crates that ship C |
+| `gh` | GitHub auth and PRs |
+| `neovim` | editor |
+| `pkgconf` | lets cargo find system libraries |
+| `rustup` | keg-only; `env.sh` adds its shims to PATH |
+| `starship` | the prompt |
+| `stow` | installs this repo |
+| `tmux` | multiplexer |
+| `zsh-autosuggestions` | sourced by `.zshrc` |
+| `zsh-syntax-highlighting` | sourced last by `.zshrc`, order matters |
 
-Casks are macOS-only in general, but `claude-code` 2.1.224 installs on Linux
-too.
+Casks are macOS-only in general, but `claude-code` installs on Linux too.
 
-From cargo, for what brew does not carry:
+From cargo, for what brew does not carry: `alacritty`, and `cargo-update`,
+whose binaries are `cargo-install-update` and `cargo-install-update-config`.
 
-| Crate | Version | Binaries |
-|---|---|---|
-| `alacritty` | 0.17.0 | `alacritty` |
-| `cargo-update` | 22.1.1 | `cargo-install-update`, `cargo-install-update-config` |
-
-Upgrades: `brew upgrade` for the first table, `cargo install-update -a` for
-the second.
+Upgrades: `brew upgrade` for the table, `cargo install-update -a` for the
+two crates.
 
 Deliberately NOT from brew:
 
@@ -214,7 +215,7 @@ command gets a bare PATH.
 ## Departure Mono
 
 The repo's only binary, and the only exception to the ASCII rule.
-[Departure Mono](https://departuremono.com/) 1.500 by Helena Zhang, under the
+[Departure Mono](https://departuremono.com/) by Helena Zhang, under the
 SIL Open Font License 1.1 (`.local/share/fonts/LICENSE-DepartureMono.txt`),
 which permits redistribution.
 
@@ -222,6 +223,6 @@ It is vendored rather than installed per-machine so every terminal renders
 identically, and because `alacritty.toml` naming a missing font fails silently
 into the system monospace.
 
-Note for HiDPI: this desktop runs 1.6x fractional scaling. Bitmap console
+Note for HiDPI: this desktop runs fractional scaling. Bitmap console
 fonts -- Terminus, the IBM VGA 8x16 clones -- get resampled into mush there.
 Departure Mono is an outline pixel font and survives it.
