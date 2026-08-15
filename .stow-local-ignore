@@ -1,0 +1,17 @@
+# Flat layout: this repo is one stow package, so anything here that is not
+# meant for $HOME must be listed. Having this file at all replaces stow's
+# built-in list, which is why the VCS entries are repeated below.
+#
+# Patterns are Perl regexes, anchored, matched per path segment.
+
+\.git
+\.gitignore
+\.gitmodules
+\.stow-local-ignore
+
+README\.md
+
+# Editor and OS noise
+.+~
+\#.*\#
+\.DS_Store

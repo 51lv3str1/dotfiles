@@ -1,0 +1,24 @@
+# Per-machine settings: tokens, host-specific paths, work-only tweaks.
+# Sourced last by env.sh / .zshrc if present. Never versioned.
+local.sh
+local.zsh
+# stow folds ~/.config/alacritty into the repo, so a local.toml dropped in
+# there lands here rather than outside it.
+local.toml
+
+# Homebrew lockfile from `brew bundle` -- machine-specific, regenerated.
+Brewfile.lock.json
+
+# Track CLAUDE.md only; the rest of ~/.claude is credentials and local state.
+.claude/*
+!.claude/CLAUDE.md
+
+# Backups made while migrating files into this repo.
+*.bak
+*.bak-*
+*.orig
+
+# Editor / OS noise
+*~
+*.swp
+.DS_Store
