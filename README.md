@@ -49,21 +49,6 @@ into the repo first -- do not copy it, or the two will drift.
 Day to day: `stow -D -d ~/dotfiles -t ~ .` to unlink, and the same with `-R`
 to restow after moving files around inside the repo.
 
-### One caveat of the flat layout
-
-Where a directory does not already exist under `$HOME`, stow links the whole
-directory instead of its contents. Everything an application then writes there
-lands inside this repo. That is how the DankMaterialShell installer came to
-overwrite a tracked `alacritty.toml`: `~/.config/alacritty` is one of those
-folded directories.
-
-Everything else links file by file, because the parent already exists. Which
-directories are folded right now:
-
-    find ~ -maxdepth 3 -lname '*dotfiles*' -xtype d
-
-GNU find only; macOS has no `-xtype`.
-
 ## Machine-specific settings
 
 Never commit secrets. Per-machine values go in files that are git-ignored and
