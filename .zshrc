@@ -52,6 +52,10 @@ else
     PROMPT='%F{green}%n@%m%f:%F{blue}%~%f %# '
 fi
 
+# --- fzf -----------------------------------------------------------------
+# C-r, C-t and M-c. Ahead of local.zsh so that file can still rebind them.
+command -v fzf >/dev/null 2>&1 && source <(fzf --zsh)
+
 # Machine-specific, not versioned. Before the plugins so it can bind keys.
 [ -r "$HOME/.config/shell/local.zsh" ] && . "$HOME/.config/shell/local.zsh"
 
