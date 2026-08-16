@@ -30,11 +30,19 @@ fi
 # --- PATH ---------------------------------------------------------------
 _path_prepend() {
     [ -d "$1" ] || return 0
-    case ":$PATH:" in
-        *":$1:"*) return 0 ;;
-    esac
+    # No skip when already present: _path_dedupe keeps the first occurrence,
+    # so prepending again is how an entry gets moved to the front.
     PATH="$1:$PATH"
 }
+
+# macOS: /etc/zprofile runs path_helper between .zshenv and .zprofile, and it
+# rebuilds PATH with the system dirs first, demoting brew behind /usr/bin.
+# The shellenv guard above cannot catch that -- brew is still on PATH, just
+# late -- so put the prefix back in front on every pass.
+if [ -n "${HOMEBREW_PREFIX-}" ]; then
+    _path_prepend "$HOMEBREW_PREFIX/sbin"
+    _path_prepend "$HOMEBREW_PREFIX/bin"
+fi
 
 _path_prepend "$HOME/bin"
 _path_prepend "$HOME/.local/bin"
