@@ -92,6 +92,11 @@ export EDITOR="${EDITOR:-vi}"
 export PAGER="${PAGER:-less}"
 export LESS="${LESS:--R}"
 
+# Non-interactive, non-login bash reads only this. Does not reach
+# `ssh host cmd`: sshd exports nothing of the user's, so nothing sets it
+# there. It does cover scripts, make and git hooks started from a session.
+export BASH_ENV="$HOME/.config/shell/env.sh"
+
 # Claude Code drops to 256 colors inside tmux unless this is set. Gated on
 # COLORTERM: on a bare console there is no truecolor to ask for.
 case "${COLORTERM-}" in

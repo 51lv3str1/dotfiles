@@ -206,6 +206,13 @@ which is cheaper than maintaining a second layout.
 neither interactive nor login and reads nothing else, so without it a remote
 command gets a bare PATH.
 
+Bash has no equivalent. Its only hook there is `$BASH_ENV`, which has to be in
+the environment already, and sshd exports none of the user's unless the server
+sets `PermitUserEnvironment yes`. `env.sh` exports it anyway, which covers
+scripts, make and git hooks started from a configured session. But where bash
+is the login shell, `ssh host 'command'` still needs `bash -lc` around the
+command, or that sshd setting.
+
 ## Departure Mono
 
 The repo's only binary, and the only exception to the ASCII rule.
