@@ -60,13 +60,20 @@ command -v fzf >/dev/null 2>&1 && source <(fzf --zsh)
 [ -r "$HOME/.config/shell/local.zsh" ] && . "$HOME/.config/shell/local.zsh"
 
 # --- Plugins ------------------------------------------------------------
-if [ -n "$HOMEBREW_PREFIX" ]; then
-    _plugin="$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-    [ -r "$_plugin" ] && source "$_plugin"
+# brew where there is one, the distro's own share/ otherwise: apt uses
+# /usr/share, Arch nests them under zsh/plugins.
+_load_plugin() {
+    local dir
+    for dir in "${HOMEBREW_PREFIX-}/share" /usr/share /usr/local/share \
+               /usr/share/zsh/plugins; do
+        [ -r "$dir/$1/$1.zsh" ] || continue
+        source "$dir/$1/$1.zsh"
+        return 0
+    done
+    return 1
+}
 
-    # Keep last: it wraps the line editor and must see every binding above.
-    _plugin="$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-    [ -r "$_plugin" ] && source "$_plugin"
-
-    unset _plugin
-fi
+_load_plugin zsh-autosuggestions
+# Keep last: it wraps the line editor and must see every binding above.
+_load_plugin zsh-syntax-highlighting
+unset -f _load_plugin
