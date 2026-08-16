@@ -102,5 +102,17 @@ case $- in
         ;;
 esac
 
+# --- Terminal image viewing ---------------------------------------------
+# --symbols is not cosmetic: under TERM=tmux-256color chafa assumes Unicode
+# blocks are unsafe and falls back to ASCII letters.
+case $- in
+    *i*)
+        img() {
+            chafa -f symbols -c full --symbols block+border+space \
+                  -w 9 --color-space din99d "$@"
+        }
+        ;;
+esac
+
 # Machine-specific, not versioned.
 [ -r "$HOME/.config/shell/local.sh" ] && . "$HOME/.config/shell/local.sh"
