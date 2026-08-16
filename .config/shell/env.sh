@@ -114,5 +114,23 @@ case $- in
         ;;
 esac
 
+# --- History ------------------------------------------------------------
+# Truncating the files is not enough: the running shell keeps its own copy in
+# memory and writes it back on exit. bash has `history -c` for that; zsh has
+# no equivalent, so push a fresh empty history with `fc -p`.
+case $- in
+    *i*)
+        forget() {
+            : >| "$HOME/.bash_history"
+            : >| "$HOME/.zsh_history"
+            if [ -n "${ZSH_VERSION-}" ]; then
+                fc -p "${HISTFILE:-$HOME/.zsh_history}"
+            elif [ -n "${BASH_VERSION-}" ]; then
+                history -c
+            fi
+        }
+        ;;
+esac
+
 # Machine-specific, not versioned.
 [ -r "$HOME/.config/shell/local.sh" ] && . "$HOME/.config/shell/local.sh"
