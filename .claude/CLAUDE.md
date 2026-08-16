@@ -31,12 +31,6 @@ Any change to my shell prompt has to be legible in the console font, `Fixed
 8x16`. No Nerd Font glyphs, no powerline separators, nothing outside what a
 bare tty can draw. If it would show as a box there, it does not go in.
 
-## Editing this file: ASCII only
-
-Write this file, and anything else in my dotfiles, in **plain ASCII**. Use
-`--` instead of an em dash, straight quotes, no box drawing. I read these on a
-headless machine over a bare tty, where anything else shows up as garbage.
-
 ## Anything written down: English
 
 Code, identifiers, comments, commit messages, PR titles and bodies: English,

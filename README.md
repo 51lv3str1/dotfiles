@@ -7,9 +7,6 @@ ssh.
 Managed with GNU Stow as a single flat package: the repo root mirrors `$HOME`
 directly, so `.zshrc` here becomes `~/.zshrc`.
 
-ASCII only, everywhere except the vendored font. These files get read on a
-bare tty where anything else is garbage.
-
 ## Layout
 
 | Here | Links to | Notes |
@@ -215,7 +212,7 @@ command, or that sshd setting.
 
 ## Departure Mono
 
-The repo's only binary, and the only exception to the ASCII rule.
+The repo's only binary.
 [Departure Mono](https://departuremono.com/) by Helena Zhang, under the
 SIL Open Font License 1.1 (`.local/share/fonts/LICENSE-DepartureMono.txt`),
 which permits redistribution.
