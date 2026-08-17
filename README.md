@@ -18,11 +18,12 @@ directly, so `.zshrc` here becomes `~/.zshrc`.
 | `.config/starship.toml` | same | one prompt for both shells |
 | `.tmux.conf` | same | truecolor for named terminals only |
 | `.config/alacritty/` | same | config and the generated DMS theme |
+| `.config/console/` | same | the tty's 16 slots; its bright half carries the second Catppuccin tier, where Alacritty keeps upstream's duplicates |
 | `.config/niri/` | same | compositor, plus the `dms/` fragments it includes |
 | `.local/share/fonts/` | same | Departure Mono, see below |
 | `.local/share/applications/`, `.local/share/icons/` | same | Alacritty desktop entry and icon |
 | `.gitconfig` | `~/.gitconfig` | |
-| `.claude/CLAUDE.md` | same | that one file; `.gitignore` excludes the rest of `~/.claude` |
+| `.claude/CLAUDE.md`, `.claude/themes/` | same | `.gitignore` excludes the rest of `~/.claude`, `settings.json` with it -- so the themes travel but the choice of one does not |
 
 `README.md` and the git files stay out of `$HOME` through
 `.stow-local-ignore`. Note that having that file at all *replaces* stow's
@@ -55,6 +56,33 @@ sourced last:
 - `~/.config/shell/local.zsh` -- interactive zsh tweaks
 - `~/.config/alacritty/local.toml` -- enable the `import` in `alacritty.toml`
 
+## Region and time
+
+System state, not repo state: set once per machine.
+
+The Debian installer splits the locale in `/etc/default/locale`: `LANG` in
+`en_US.UTF-8` for program messages, the ten formatting categories in
+`es_AR.UTF-8`. Keep the split. Unifying on `en_US` takes `LC_MEASUREMENT`,
+`LC_PAPER` and `LC_MONETARY` back to imperial, Letter and USD.
+
+`LC_NUMERIC` is a comma there, so `awk` prints `1234,50`. Where output has to
+be parsed, `LC_ALL=C` goes in front of the script rather than in the session.
+
+`sshd_config` carries `AcceptEnv LANG LC_*`, so over ssh the client's locale
+wins over this one. Only what `locale -a` lists can be honoured; a client
+forwarding anything else draws `cannot set locale`.
+
+Timezone is separate from the locale:
+
+    sudo timedatectl set-timezone America/Argentina/Buenos_Aires
+
+A minimal Debian ships no NTP client, so nothing disciplines the clock:
+
+    sudo apt install systemd-timesyncd
+
+Enabled on install and needs no configuration -- `NTP=` is empty, so it falls
+back to the Debian pool. `timedatectl` reports whether it took.
+
 ## Packages to install
 
 Homebrew everywhere it can be, since it is the only package manager common to
@@ -85,7 +113,7 @@ is that plus the dependencies.
 | `bitwarden-cli` | secrets, kept out of this repo |
 | `chafa` | images as terminal characters; works at 8 colours |
 | `cmake` | build dependency for crates that ship C |
-| `fastfetch` | the system summary at login |
+| `fastfetch` | system summary, run by hand |
 | `fzf` | sourced by `.zshrc` for `C-r`, `C-t` and `M-c` |
 | `gh` | GitHub auth and PRs |
 | `neovim` | editor |
