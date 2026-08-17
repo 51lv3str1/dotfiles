@@ -11,6 +11,11 @@
 
 README\.md
 
+# The lockfile is gitignored but still lands on disk after `brew bundle`,
+# and stow works off the filesystem, not off git.
+Brewfile
+Brewfile\.lock\.json
+
 # Editor and OS noise
 .+~
 \#.*\#

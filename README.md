@@ -60,9 +60,10 @@ sourced last:
 Homebrew everywhere it can be, since it is the only package manager common to
 every machine.
 
-    brew install chafa cmake gh neovim pkgconf rustup starship stow tmux \
-                 zsh-autosuggestions zsh-syntax-highlighting bitwarden-cli
-    brew install --cask claude-code
+    brew bundle --file=~/dotfiles/Brewfile
+
+`Brewfile` is the inventory below in machine-readable form. Keep the two in
+step: `brew leaves` is what belongs in it.
 
 Rust toolchain, then the binaries built from crates.io:
 
@@ -202,6 +203,20 @@ independent of this repo, so the terminal can end up looking different from
 the other machines.
 
 ## Headless box
+
+From a fresh Debian with nothing but git and brew:
+
+    git clone git@github.com:51lv3str1/dotfiles.git ~/dotfiles
+    brew bundle --file=~/dotfiles/Brewfile
+    stow -d ~/dotfiles -t ~ .
+    sudo apt install zsh
+    chsh -s /usr/bin/zsh
+
+Bundle before stow: stow itself comes out of the Brewfile. zsh comes from apt
+rather than brew, for the reason under Inventory.
+
+Skip `cargo install alacritty` here, and the `-dev` packages that go with it:
+there is no display to draw on. `cargo install cargo-update` still applies.
 
 The flat layout is all or nothing, so the font, the desktop entry and the niri
 config land there too. They are inert without a display and cost about 90 KB,
