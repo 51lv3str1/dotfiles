@@ -120,6 +120,26 @@ case "${COLORTERM-}" in
     truecolor|24bit) export CLAUDE_CODE_TMUX_TRUECOLOR=1 ;;
 esac
 
+# --- Console palette ----------------------------------------------------
+# The tty's 16 colours are a palette, not a fixed set. Point them at
+# Catppuccin so whatever paints with those slots -- nvim's `default` scheme
+# among them -- comes out in the same colours as every other terminal.
+# ESC]P and not setvtrgb: the ioctl that one uses wants root, this is just
+# output. Only on a real VT: over ssh and under tmux $TERM is never linux.
+case $- in
+    *i*)
+        _palette="$HOME/.config/console/catppuccin-mocha.palette"
+        if [ "$TERM" = linux ] && [ -r "$_palette" ]; then
+            while read -r _slot _hex; do
+                [ -n "$_slot" ] || continue
+                printf '\033]P%s%s' "$_slot" "$_hex"
+            done < "$_palette"
+            unset _slot _hex
+        fi
+        unset _palette
+        ;;
+esac
+
 # --- Aliases ------------------------------------------------------------
 # Interactive only: scripts and `ssh host cmd` read this file too.
 case $- in

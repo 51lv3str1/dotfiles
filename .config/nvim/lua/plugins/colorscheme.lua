@@ -5,9 +5,11 @@ return {
     "LazyVim/LazyVim",
     opts = {
       -- Catppuccin defines no cterm colours and turns termguicolors back on
-      -- as it loads, so on the 16-colour console it is blue mush either way.
-      -- habamax ships cterm attributes. vim.g.bare_console: config/options.
-      colorscheme = vim.g.bare_console and "habamax" or "catppuccin-mocha",
+      -- as it loads, so on the console it is blue mush. `default` is the one
+      -- scheme that paints only with slots 0-15, which is exactly what the
+      -- tty has -- and env.sh loads Catppuccin into those slots, so this
+      -- comes out in the same colours. vim.g.bare_console: config/options.
+      colorscheme = vim.g.bare_console and "default" or "catppuccin-mocha",
     },
   },
 
