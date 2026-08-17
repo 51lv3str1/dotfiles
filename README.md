@@ -18,16 +18,16 @@ directly, so `.zshrc` here becomes `~/.zshrc`.
 | `.config/starship.toml` | same | one prompt for both shells |
 | `.tmux.conf` | same | truecolor for named terminals only |
 | `.config/alacritty/` | same | config and the generated DMS theme |
-| `.config/console/` | same | the tty's 16 slots; its bright half carries the second Catppuccin tier, where Alacritty keeps upstream's duplicates |
+| `.config/console/` | same | the tty's 16 slots, bright half reassigned; Alacritty keeps upstream's |
 | `.config/niri/` | same | compositor, plus the `dms/` fragments it includes |
 | `.local/share/fonts/` | same | Departure Mono, see below |
 | `.local/share/applications/`, `.local/share/icons/` | same | Alacritty desktop entry and icon |
 | `.gitconfig` | `~/.gitconfig` | |
-| `.claude/CLAUDE.md`, `.claude/themes/` | same | `.gitignore` excludes the rest of `~/.claude`, `settings.json` with it -- so the themes travel but the choice of one does not |
+| `.claude/CLAUDE.md`, `.claude/themes/` | same | the rest of `~/.claude` is excluded, `settings.json` with it: themes travel, picking one does not |
 
 `README.md` and the git files stay out of `$HOME` through
-`.stow-local-ignore`. Note that having that file at all *replaces* stow's
-built-in ignore list, which is why it repeats the VCS entries.
+`.stow-local-ignore`, which *replaces* stow's built-in ignore list rather than
+adding to it -- hence the repeated VCS entries.
 
 ## Install
 
@@ -91,7 +91,8 @@ every machine.
     brew bundle --file=~/dotfiles/Brewfile
 
 `Brewfile` is the inventory below in machine-readable form. Keep the two in
-step: `brew leaves` is what belongs in it.
+step: `brew leaves` is what belongs in it, and `brew list --formula` is that
+plus everything that came along as a dependency.
 
 Rust toolchain, then the binaries built from crates.io:
 
@@ -101,12 +102,7 @@ Rust toolchain, then the binaries built from crates.io:
 ### Inventory
 
 Use this when bringing another machine in line: install what is missing, and
-drop anything installed there by another means so all four stay on one
-source.
-
-From brew, requested explicitly. Everything else brew lists came along as a
-dependency -- `brew leaves` is the list that matters, `brew list --formula`
-is that plus the dependencies.
+drop anything installed there by another means.
 
 | Formula | Why |
 |---|---|
@@ -131,8 +127,8 @@ Casks are macOS-only in general, but `claude-code` installs on Linux too.
 From cargo, for what brew does not carry: `alacritty`, and `cargo-update`,
 whose binaries are `cargo-install-update` and `cargo-install-update-config`.
 
-Upgrades: `brew upgrade` for the table, `cargo install-update -a` for the
-two crates.
+Upgrades go through the `update` function in `env.sh`, which runs apt, cargo
+and brew in turn.
 
 Deliberately NOT from brew:
 
@@ -144,9 +140,9 @@ Deliberately NOT from brew:
   brew, and not on crates.io either: the `niri` crate there is an empty 0.0.0
   name reservation. See below.
 - **Anything that exists on only one of the platforms.** Brew earns its keep
-  by holding one inventory for all four machines; a formula that cannot be
-  installed on three of them buys nothing and hides the fact that the tool is
-  platform-specific. Those go through the platform's own manager.
+  by holding one inventory for all four machines; a formula that installs on
+  only one of them hides that the tool is platform-specific. Those go through
+  the platform's own manager.
 
 ## Linux only
 
@@ -247,8 +243,8 @@ Skip `cargo install alacritty` here, and the `-dev` packages that go with it:
 there is no display to draw on. `cargo install cargo-update` still applies.
 
 The flat layout is all or nothing, so the font, the desktop entry and the niri
-config land there too. They are inert without a display and cost about 90 KB,
-which is cheaper than maintaining a second layout.
+config land there too. They are inert without a display, which is cheaper than
+maintaining a second layout.
 
 `.zshenv` matters most there: `ssh host 'command'` starts a shell that is
 neither interactive nor login and reads nothing else, so without it a remote
@@ -272,9 +268,9 @@ It is vendored rather than installed per-machine so every terminal renders
 identically, and because `alacritty.toml` naming a missing font fails silently
 into the system monospace.
 
-Note for HiDPI: this desktop runs fractional scaling. Bitmap console
-fonts -- Terminus, the IBM VGA 8x16 clones -- get resampled into mush there.
-Departure Mono is an outline pixel font and survives it.
+Under fractional scaling, bitmap console fonts -- Terminus, the IBM VGA 8x16
+clones -- get resampled into mush. Departure Mono is an outline pixel font and
+survives it.
 
 ### Nerd Font icons
 
@@ -288,6 +284,5 @@ fontconfig weighs glyph coverage, so text keeps resolving to the real font.
     fc-match "monospace"                     # Noto Sans Mono
     fc-match "monospace:charset=e0b0"        # Symbols Nerd Font Mono
 
-This is the fontconfig side of it, so it covers Linux. Native macOS
-applications go through Core Text and ignore the file; it links harmlessly
-there, like the rest of the Linux-only entries.
+This is the fontconfig side of it, so it covers Linux only: native macOS
+applications go through Core Text and ignore the file.
