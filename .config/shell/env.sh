@@ -154,6 +154,22 @@ case $- in
         ;;
 esac
 
+# --- Updates ------------------------------------------------------------
+# Every source this machine installs from, in one command. brew last, as the
+# one manager common to all of them. Steps are independent on purpose: a
+# failing apt should not skip the rest.
+case $- in
+    *i*)
+        update() {
+            if [ "$DOTFILES_OS" != Darwin ]; then
+                command -v apt >/dev/null 2>&1 && sudo apt update && sudo apt upgrade
+                command -v cargo-install-update >/dev/null 2>&1 && cargo install-update -a
+            fi
+            command -v brew >/dev/null 2>&1 && brew update && brew upgrade
+        }
+        ;;
+esac
+
 # --- Terminal image viewing ---------------------------------------------
 # --symbols is not cosmetic: under TERM=tmux-256color chafa assumes Unicode
 # blocks are unsafe and falls back to ASCII letters.
