@@ -1,0 +1,28 @@
+{
+  "name": "Catppuccin Latte ANSI",
+  "base": "light-ansi",
+  "overrides": {
+    "text": "ansi:white",
+    "inverseText": "ansi:black",
+    "promptBorder": "ansi:magenta",
+    "promptBorderShimmer": "ansi:magentaBright",
+    "permission": "ansi:magenta",
+    "permissionShimmer": "ansi:magentaBright",
+    "suggestion": "ansi:magenta",
+    "remember": "ansi:magenta",
+    "autoAccept": "ansi:magenta",
+    "autoAcceptShimmer": "ansi:magentaBright",
+    "skill": "ansi:magenta",
+    "merged": "ansi:magenta",
+    "planMode": "ansi:cyan",
+    "claude": "ansi:yellowBright",
+    "purple_FOR_SUBAGENTS_ONLY": "ansi:magenta",
+    "orange_FOR_SUBAGENTS_ONLY": "ansi:yellowBright",
+    "userMessageBackground": "ansi:black",
+    "userMessageBackgroundHover": "ansi:blackBright",
+    "composerSidebarBackground": "ansi:black",
+    "memoryBackgroundColor": "ansi:black",
+    "bashMessageBackgroundColor": "ansi:blackBright",
+    "rate_limit_empty": "ansi:white"
+  }
+}
