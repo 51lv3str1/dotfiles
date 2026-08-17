@@ -129,6 +129,28 @@ case $- in
         alias l='ls -CF'
         alias ..='cd ..'
         alias ...='cd ../..'
+
+        case "$DOTFILES_OS" in
+            Darwin)
+                # BSD ls: CLICOLOR covers ll/la/l without a per-alias flag.
+                export CLICOLOR=1
+                ;;
+            Linux|WSL)
+                # Expands inside ll/la/l too: the shell re-expands the first
+                # word of an alias.
+                alias ls='ls --color=auto'
+                # LS_COLORS is what colours by extension; without it ls falls
+                # back to a much smaller built-in set. Guarded so the fork
+                # happens once and not on every source of this file.
+                if [ -z "${LS_COLORS-}" ] && command -v dircolors >/dev/null 2>&1; then
+                    if [ -r "$HOME/.dircolors" ]; then
+                        eval "$(dircolors -b "$HOME/.dircolors")"
+                    else
+                        eval "$(dircolors -b)"
+                    fi
+                fi
+                ;;
+        esac
         ;;
 esac
 
