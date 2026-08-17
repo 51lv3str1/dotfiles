@@ -84,9 +84,12 @@ is that plus the dependencies.
 | `bitwarden-cli` | secrets, kept out of this repo |
 | `chafa` | images as terminal characters; works at 8 colours |
 | `cmake` | build dependency for crates that ship C |
+| `fastfetch` | the system summary at login |
+| `fzf` | sourced by `.zshrc` for `C-r`, `C-t` and `M-c` |
 | `gh` | GitHub auth and PRs |
 | `neovim` | editor |
 | `pkgconf` | lets cargo find system libraries |
+| `ripgrep` | what the nvim picker greps with |
 | `rustup` | keg-only; `env.sh` adds its shims to PATH |
 | `starship` | the prompt |
 | `stow` | installs this repo |
