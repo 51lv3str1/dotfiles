@@ -1,5 +1,22 @@
 # Shared by bash and zsh. POSIX only. Idempotent.
 
+# --- Platform -----------------------------------------------------------
+# One place to branch on. zsh and bash both set OSTYPE, so the common case
+# costs no fork; uname is only for a plain sh. Exported so subshells inherit
+# it instead of probing again.
+if [ -z "${DOTFILES_OS-}" ]; then
+    case "${OSTYPE-}" in
+        darwin*) DOTFILES_OS=Darwin ;;
+        linux*)  DOTFILES_OS=Linux ;;
+        *)       DOTFILES_OS=$(uname -s) ;;
+    esac
+    # WSL says Linux, but its clipboard and browser are the Windows ones.
+    if [ "$DOTFILES_OS" = Linux ] && [ -n "${WSL_DISTRO_NAME-}" ]; then
+        DOTFILES_OS=WSL
+    fi
+    export DOTFILES_OS
+fi
+
 # --- Homebrew -----------------------------------------------------------
 # Both halves can be missing independently: a session may inherit
 # HOMEBREW_PREFIX without the prefix in PATH, or the reverse.
