@@ -120,6 +120,18 @@ case "${COLORTERM-}" in
     truecolor|24bit) export CLAUDE_CODE_TMUX_TRUECOLOR=1 ;;
 esac
 
+# --- ssh agent ----------------------------------------------------------
+# openssh-client ships a socket-activated agent as a systemd user unit, which
+# holds the key so the passphrase is typed once per boot rather than once per
+# shell. The socket unit exports SSH_AUTH_SOCK into the systemd user manager,
+# which a login shell on a tty never sees -- hence this. An existing value
+# wins: macOS has its own agent, and `ssh -A` forwards one.
+_agent_sock="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/openssh_agent"
+if [ -z "${SSH_AUTH_SOCK-}" ] && [ -S "$_agent_sock" ]; then
+    export SSH_AUTH_SOCK="$_agent_sock"
+fi
+unset _agent_sock
+
 # --- Console palette ----------------------------------------------------
 # The tty's 16 colours are a palette, not a fixed set. Point them at
 # Catppuccin so whatever paints with those slots -- nvim's `default` scheme
