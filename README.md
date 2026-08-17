@@ -180,14 +180,19 @@ it: `env.sh` probes the three known prefixes at runtime.
 the icon, and everything under `.config/niri`. They link harmlessly and are
 ignored.
 
-### The font needs a symlink, not stow
+### The fonts need a symlink, not stow
 
 fontconfig is not used by native macOS applications; they read
 `~/Library/Fonts`. This repo targets `~/.local/share/fonts`, which is the
-Linux path, so link the file directly instead:
+Linux path, so link both files directly instead:
 
     ln -s ~/dotfiles/.local/share/fonts/DepartureMono-Regular.otf \
+          ~/dotfiles/.local/share/fonts/SymbolsNerdFontMono-Regular.ttf \
           ~/Library/Fonts/
+
+The symbols font matters as much as the other one: the fontconfig rule that
+supplies the Nerd Font icons on Linux does nothing here, so without it
+installed there is nothing for Core Text to fall back to.
 
 `brew install --cask font-departure-mono` also works, but pins a version
 independent of this repo, so the terminal can end up looking different from
@@ -224,3 +229,19 @@ into the system monospace.
 Note for HiDPI: this desktop runs fractional scaling. Bitmap console
 fonts -- Terminus, the IBM VGA 8x16 clones -- get resampled into mush there.
 Departure Mono is an outline pixel font and survives it.
+
+### Nerd Font icons
+
+Departure Mono ships no Nerd Font icons, so
+`.config/fontconfig/conf.d/10-nerd-font-symbols.conf` prefers `Symbols Nerd
+Font Mono` for it and for generic `monospace`. Only the icons come from there:
+fontconfig weighs glyph coverage, so text keeps resolving to the real font.
+
+    fc-match "Departure Mono"                # Departure Mono
+    fc-match "Departure Mono:charset=e0b0"   # Symbols Nerd Font Mono
+    fc-match "monospace"                     # Noto Sans Mono
+    fc-match "monospace:charset=e0b0"        # Symbols Nerd Font Mono
+
+This is the fontconfig side of it, so it covers Linux. Native macOS
+applications go through Core Text and ignore the file; it links harmlessly
+there, like the rest of the Linux-only entries.
