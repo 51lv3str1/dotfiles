@@ -58,6 +58,8 @@ word-split.
 
 Two caveats:
 
-- Your Bash tool runs `bash`. That's expected -- don't work around it.
+- Your Bash tool runs my login shell, not always bash: it is zsh wherever
+  `chsh` has run. Check `$ZSH_VERSION` rather than assuming -- unquoted
+  expansions word-split under one and not the other.
 - Config sourced by both shells must stay POSIX; my dotfiles are shared with
   machines where bash is still the login shell.
