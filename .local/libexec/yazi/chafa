@@ -1,0 +1,13 @@
+#!/bin/sh
+# Only for yazi, which puts this directory on PATH ahead of the real chafa.
+#
+# yazi calls chafa without --symbols, and chafa intersects the symbol set with
+# what it trusts the terminal to draw: under tmux's TERM that leaves ASCII
+# letters, and asking for blocks explicitly leaves nothing but spaces. In
+# symbols mode chafa emits only text and SGR, so claiming xterm is safe.
+
+# Drop our own directory, or the exec below finds this script again.
+PATH=${PATH#"${0%/*}:"}
+export PATH
+
+exec env TERM=xterm-256color chafa "$@"

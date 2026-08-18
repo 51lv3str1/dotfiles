@@ -20,6 +20,7 @@ directly, so `.zshrc` here becomes `~/.zshrc`.
 | `.config/alacritty/` | same | config and the generated DMS theme |
 | `.config/yazi/` | same | the flavour lock, not the flavour itself |
 | `.config/niri/` | same | compositor, plus the `dms/` fragments it includes |
+| `.local/libexec/yazi/` | same | a chafa shim, on PATH only for yazi |
 | `.local/share/fonts/` | same | Departure Mono, see below |
 | `.local/share/applications/`, `.local/share/icons/` | same | Alacritty desktop entry and icon |
 | `.gitconfig` | `~/.gitconfig` | |
@@ -122,7 +123,7 @@ drop anything installed there by another means.
 | `starship` | the prompt |
 | `stow` | installs this repo |
 | `tmux` | multiplexer |
-| `yazi` | file manager; `env.sh` wraps it as `y` so the shell follows it |
+| `yazi` | file manager; `env.sh` wraps it as `y` for the cwd and for chafa |
 | `zsh-autosuggestions` | sourced by `.zshrc` |
 | `zsh-syntax-highlighting` | sourced last by `.zshrc`, order matters |
 
