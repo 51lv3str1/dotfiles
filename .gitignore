@@ -25,3 +25,8 @@ Brewfile.lock.json
 *~
 *.swp
 .DS_Store
+
+# DMS plugins: clones and per-machine plugin state. The bar configs that use
+# them are versioned; the plugin trees are not.
+.config/DankMaterialShell/plugins/
+.config/DankMaterialShell/plugin_settings.json
