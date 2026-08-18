@@ -18,7 +18,6 @@ directly, so `.zshrc` here becomes `~/.zshrc`.
 | `.config/starship.toml` | same | one prompt for both shells |
 | `.tmux.conf` | same | truecolor for named terminals only |
 | `.config/alacritty/` | same | config and the generated DMS theme |
-| `.config/console/` | same | the tty's 16 slots, bright half reassigned; Alacritty keeps upstream's |
 | `.config/niri/` | same | compositor, plus the `dms/` fragments it includes |
 | `.local/share/fonts/` | same | Departure Mono, see below |
 | `.local/share/applications/`, `.local/share/icons/` | same | Alacritty desktop entry and icon |
@@ -242,6 +241,13 @@ rather than brew, for the reason under Inventory.
 
 Skip `cargo install alacritty` here, and the `-dev` packages that go with it:
 there is no display to draw on. `cargo install cargo-update` still applies.
+
+There is no desktop, but there is a monitor, so the VTs are what gets used.
+kmscon owns them: it replaces the kernel console with its own terminal
+emulator, drawing TrueType fonts and naming itself as a truecolor `$TERM`.
+That is why nothing here special-cases `TERM=linux` any more -- the palette
+repaint, tmux's 16-colour theme and the prompt rule that banned anything a
+bare tty cannot draw all existed for a console that no longer appears.
 
 The flat layout is all or nothing, so the font, the desktop entry and the niri
 config land there too. They are inert without a display, which is cheaper than
