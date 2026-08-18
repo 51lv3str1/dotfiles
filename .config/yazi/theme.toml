@@ -1,0 +1,4 @@
+# The flavour itself is not versioned: `ya pkg install` fetches what
+# package.toml locks. Light mode is unset -- every machine here is dark.
+[flavor]
+dark = "catppuccin-mocha"

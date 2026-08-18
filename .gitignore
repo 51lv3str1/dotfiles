@@ -9,6 +9,9 @@ local.toml
 # Homebrew lockfile from `brew bundle` -- machine-specific, regenerated.
 Brewfile.lock.json
 
+# yazi flavours: package.toml locks them, `ya pkg install` fetches them.
+.config/yazi/flavors/
+
 # Track CLAUDE.md only; the rest of ~/.claude is credentials and local state.
 .claude/*
 !.claude/CLAUDE.md

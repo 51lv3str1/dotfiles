@@ -18,6 +18,7 @@ directly, so `.zshrc` here becomes `~/.zshrc`.
 | `.config/starship.toml` | same | one prompt for both shells |
 | `.tmux.conf` | same | truecolor for named terminals only |
 | `.config/alacritty/` | same | config and the generated DMS theme |
+| `.config/yazi/` | same | the flavour lock, not the flavour itself |
 | `.config/niri/` | same | compositor, plus the `dms/` fragments it includes |
 | `.local/share/fonts/` | same | Departure Mono, see below |
 | `.local/share/applications/`, `.local/share/icons/` | same | Alacritty desktop entry and icon |
@@ -92,6 +93,9 @@ every machine.
 `Brewfile` is the inventory below in machine-readable form. Keep the two in
 step: `brew leaves` is what belongs in it, and `brew list --formula` is that
 plus everything that came along as a dependency.
+
+yazi's flavour is not versioned either: `package.toml` locks a revision and
+`ya pkg install` fetches it into `flavors/`, which is git-ignored.
 
 Rust toolchain, then the binaries built from crates.io:
 
