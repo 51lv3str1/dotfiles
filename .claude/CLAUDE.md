@@ -57,3 +57,18 @@ Two caveats:
   expansions word-split under one and not the other.
 - Config sourced by both shells must stay POSIX; my dotfiles are shared with
   machines where bash is still the login shell.
+
+## Claims: check first, then say it
+
+Never state a fact about my machines, my files, my accounts or the tools I use
+without having just read it. Run the command, open the file, hit the API --
+then answer. "Probably", "it should be", "that's because X doesn't support Y"
+from memory is exactly what I don't want.
+
+This holds hardest for the explanation. Verifying that something is missing
+and then inventing why it is missing is the same error with a fact glued to
+the front of it.
+
+If checking is impossible, say so and say what you would have checked. An
+honest "I don't know" costs me nothing; a confident wrong answer costs me the
+next hour.
