@@ -248,7 +248,7 @@ there is no display to draw on. `cargo install cargo-update` still applies.
 
 There is no desktop, but there is a monitor, so the VTs are what gets used.
 kmscon owns them: it replaces the kernel console with its own terminal
-emulator, drawing TrueType fonts and naming itself as a truecolor `$TERM`.
+emulator, drawing TrueType fonts and reporting `TERM=xterm-256color`.
 
     sudo apt install -t trixie-backports kmscon
 
@@ -258,6 +258,29 @@ which leaves `getty@.service` disabled -- re-enable that one to go back.
 That is why nothing here special-cases `TERM=linux` any more -- the palette
 repaint, tmux's 16-colour theme and the prompt rule that banned anything a
 bare tty cannot draw all existed for a console that no longer appears.
+
+Its font goes in `/etc/kmscon/kmscon.conf`, as `font-engine=pango` with
+`font-name=Departure Mono`. But kmscon runs as root, so it reads neither
+`~/.local/share/fonts` nor `~/.config/fontconfig` -- both have to be reachable
+from outside `$HOME`:
+
+    sudo mkdir -p /usr/local/share/fonts/kmscon
+    sudo ln -sfn ~/dotfiles/.local/share/fonts/DepartureMono-Regular.otf \
+                 ~/dotfiles/.local/share/fonts/SymbolsNerdFontMono-Regular.ttf \
+                 /usr/local/share/fonts/kmscon/
+    sudo ln -sfn ~/dotfiles/.config/fontconfig/conf.d/10-nerd-font-symbols.conf \
+                 /etc/fonts/conf.d/
+    sudo fc-cache -f
+
+Links and not copies, or the console drifts from the font in here. The rule
+counts as much as the font: without it root's fallback for Departure Mono is
+Noto Sans, which carries no icons, and everything that draws one gets a box.
+
+    sudo fc-match -s "Departure Mono" | head -2
+
+Symbols Nerd Font Mono has to come second there. kmscon resolves the face once
+at startup, so `systemctl restart kmsconvt@tty1` is what makes a change take --
+and that logs out whatever is on that VT.
 
 The flat layout is all or nothing, so the font, the desktop entry and the niri
 config land there too. They are inert without a display, which is cheaper than
