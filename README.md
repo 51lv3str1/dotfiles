@@ -96,7 +96,10 @@ step: `brew leaves` is what belongs in it, and `brew list --formula` is that
 plus everything that came along as a dependency.
 
 yazi's flavour is not versioned either: `package.toml` locks a revision and
-`ya pkg install` fetches it into `flavors/`, which is git-ignored.
+`ya pkg install` fetches it into `flavors/`, which is git-ignored. So on a
+fresh machine, once the formulae are in:
+
+    ya pkg install
 
 Rust toolchain, then the binaries built from crates.io:
 
