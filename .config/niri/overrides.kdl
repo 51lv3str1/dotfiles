@@ -19,3 +19,11 @@ binds {
         spawn "alacritty" "-e" "zsh" "-c" "source ~/.zshrc && yazi";
     }
 }
+
+// Only the phone has this output, so this block is inert everywhere else.
+// DMS hardcodes its popout widths -- the control center asks for 550 logical
+// px -- and niri's own scale of 2.25 leaves the panel 480 wide, so the popups
+// ran off the screen. 1.75 gives 617 and they fit.
+output "DSI-1" {
+    scale 1.75
+}
