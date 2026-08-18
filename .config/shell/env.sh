@@ -194,6 +194,22 @@ case $- in
         ;;
 esac
 
+# --- File manager -------------------------------------------------------
+# yazi cannot change the shell's directory itself, so it writes the one it
+# exited on to a file and this acts on it.
+case $- in
+    *i*)
+        y() {
+            _yazi_cwd=$(mktemp "${TMPDIR:-/tmp}/yazi-cwd.XXXXXX") || return 1
+            yazi "$@" --cwd-file="$_yazi_cwd"
+            _yazi_dir=$(cat "$_yazi_cwd")
+            rm -f "$_yazi_cwd"
+            [ -n "$_yazi_dir" ] && [ "$_yazi_dir" != "$PWD" ] && cd "$_yazi_dir"
+            unset _yazi_cwd _yazi_dir
+        }
+        ;;
+esac
+
 # --- History ------------------------------------------------------------
 # Truncating the files is not enough: the running shell keeps its own copy in
 # memory and writes it back on exit. bash has `history -c` for that; zsh has
