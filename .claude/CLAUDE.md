@@ -25,13 +25,6 @@ would not expect, or an error of mine.
 Same for comments in files. A line or two, only for the non-obvious why.
 Never restate what the code says.
 
-## Prompt: must render in TerminusBold 12x24
-
-Any change to my shell prompt has to be legible in the console font,
-`TerminusBold 12x24`. No Nerd Font glyphs, no powerline separators, nothing
-outside what a bare tty can draw. If it would show as a box there, it does
-not go in.
-
 ## Anything written down: English
 
 Code, identifiers, comments, commit messages, PR titles and bodies: English,

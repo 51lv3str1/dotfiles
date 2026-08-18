@@ -132,30 +132,6 @@ if [ -z "${SSH_AUTH_SOCK-}" ] && [ -S "$_agent_sock" ]; then
 fi
 unset _agent_sock
 
-# --- Console palette ----------------------------------------------------
-# The tty's 16 colours are a palette, not a fixed set. Point them at
-# Catppuccin so whatever paints with those slots -- nvim's `default` scheme
-# among them -- comes out in the same colours as every other terminal.
-# ESC]P and not setvtrgb: the ioctl that one uses wants root, this is just
-# output. Only on a real VT: over ssh and under tmux $TERM is never linux.
-case $- in
-    *i*)
-        _palette="$HOME/.config/console/catppuccin-mocha.palette"
-        # Not exported: .zshenv and .zshrc both source this file, so the flag
-        # stops the second pass while a new shell still repaints -- which is
-        # how the palette comes back after anything resets the VT.
-        if [ -z "${_palette_done-}" ] && [ "$TERM" = linux ] && [ -r "$_palette" ]; then
-            while read -r _slot _hex; do
-                [ -n "$_slot" ] || continue
-                printf '\033]P%s%s' "$_slot" "$_hex"
-            done < "$_palette"
-            _palette_done=1
-            unset _slot _hex
-        fi
-        unset _palette
-        ;;
-esac
-
 # --- Aliases ------------------------------------------------------------
 # Interactive only: scripts and `ssh host cmd` read this file too.
 case $- in
