@@ -201,7 +201,9 @@ case $- in
     *i*)
         y() {
             _yazi_cwd=$(mktemp "${TMPDIR:-/tmp}/yazi-cwd.XXXXXX") || return 1
-            yazi "$@" --cwd-file="$_yazi_cwd"
+            # NIRI_SOCKET is what makes yazi choose the Wayland image driver,
+            # which needs ueberzugpp; hidden, it falls through to chafa.
+            env -u NIRI_SOCKET yazi "$@" --cwd-file="$_yazi_cwd"
             _yazi_dir=$(cat "$_yazi_cwd")
             rm -f "$_yazi_cwd"
             [ -n "$_yazi_dir" ] && [ "$_yazi_dir" != "$PWD" ] && cd "$_yazi_dir"
