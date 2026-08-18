@@ -267,3 +267,6 @@ include optional=true "dms/alttab.kdl"
 include optional=true "dms/binds.kdl"
 include optional=true "dms/outputs.kdl"
 include optional=true "dms/cursor.kdl"
+
+// Last, so it overrides the dms files above.
+include "overrides.kdl"
