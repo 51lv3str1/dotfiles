@@ -6,7 +6,8 @@ binds {
 
     // === Application Launchers ===
     Mod+T hotkey-overlay-title="Open Terminal" { spawn "alacritty"; }
-    Mod+Space hotkey-overlay-title="Application Launcher" {
+    // Disabled: the launcher lives on Mod+A now.
+    /-Mod+Space hotkey-overlay-title="Application Launcher" {
         spawn "dms" "ipc" "call" "spotlight" "toggle";
     }
     Alt+Space hotkey-overlay-title="Spotlight Bar" {

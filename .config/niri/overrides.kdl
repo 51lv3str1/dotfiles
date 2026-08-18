@@ -7,3 +7,15 @@ layout {
         urgent-color   "#9b0000"
     }
 }
+
+// From the phone. Mod+A is a second chord for the launcher dms already binds
+// to Mod+Space; the browser one is new.
+binds {
+    Mod+B hotkey-overlay-title="Open Web Browser" { spawn "google-chrome"; }
+    Mod+A hotkey-overlay-title="Application Launcher" {
+        spawn "dms" "ipc" "call" "spotlight" "toggle";
+    }
+    Mod+D hotkey-overlay-title="Open File Manager" {
+        spawn "alacritty" "-e" "zsh" "-c" "source ~/.zshrc && yazi";
+    }
+}
