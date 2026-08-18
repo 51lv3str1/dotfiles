@@ -141,11 +141,15 @@ unset _agent_sock
 case $- in
     *i*)
         _palette="$HOME/.config/console/catppuccin-mocha.palette"
-        if [ "$TERM" = linux ] && [ -r "$_palette" ]; then
+        # Not exported: .zshenv and .zshrc both source this file, so the flag
+        # stops the second pass while a new shell still repaints -- which is
+        # how the palette comes back after anything resets the VT.
+        if [ -z "${_palette_done-}" ] && [ "$TERM" = linux ] && [ -r "$_palette" ]; then
             while read -r _slot _hex; do
                 [ -n "$_slot" ] || continue
                 printf '\033]P%s%s' "$_slot" "$_hex"
             done < "$_palette"
+            _palette_done=1
             unset _slot _hex
         fi
         unset _palette
