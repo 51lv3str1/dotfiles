@@ -282,6 +282,13 @@ Symbols Nerd Font Mono has to come second there. kmscon resolves the face once
 at startup, so `systemctl restart kmsconvt@tty1` is what makes a change take --
 and that logs out whatever is on that VT.
 
+`font-size` is in points, so at 96 DPI it wants a value whose pixel height
+comes out whole: 18 gives 24 px, 24 gives 32 px. A fractional height leaves
+`█` short of its cell and every box-drawing banner picks up hairlines
+between the rows. Alacritty hides this -- `font.builtin_box_drawing` draws
+those glyphs itself instead of asking the font -- so the console is the only
+place the size matters.
+
 The flat layout is all or nothing, so the font, the desktop entry and the niri
 config land there too. They are inert without a display, which is cheaper than
 maintaining a second layout.
