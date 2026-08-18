@@ -119,6 +119,7 @@ drop anything installed there by another means.
 | `starship` | the prompt |
 | `stow` | installs this repo |
 | `tmux` | multiplexer |
+| `yazi` | file manager in the terminal |
 | `zsh-autosuggestions` | sourced by `.zshrc` |
 | `zsh-syntax-highlighting` | sourced last by `.zshrc`, order matters |
 
