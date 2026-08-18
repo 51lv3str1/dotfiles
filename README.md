@@ -21,7 +21,7 @@ directly, so `.zshrc` here becomes `~/.zshrc`.
 | `.config/yazi/` | same | the flavour lock, not the flavour itself |
 | `.config/niri/` | same | compositor, plus the `dms/` fragments it includes |
 | `.local/libexec/yazi/` | same | a chafa shim, on PATH only for yazi |
-| `.local/share/fonts/` | same | Departure Mono, see below |
+| `.local/share/fonts/` | same | Departure Mono, patched and plain, see below |
 | `.local/share/applications/`, `.local/share/icons/` | same | Alacritty desktop entry and icon |
 | `.gitconfig` | `~/.gitconfig` | |
 | `.claude/CLAUDE.md` | same | that one file; the rest of `~/.claude` is credentials and local state |
@@ -222,13 +222,12 @@ fontconfig is not used by native macOS applications; they read
 `~/Library/Fonts`. This repo targets `~/.local/share/fonts`, which is the
 Linux path, so link both files directly instead:
 
-    ln -s ~/dotfiles/.local/share/fonts/DepartureMono-Regular.otf \
-          ~/dotfiles/.local/share/fonts/SymbolsNerdFontMono-Regular.ttf \
+    ln -s ~/dotfiles/.local/share/fonts/DepartureMonoNerdFont-Regular.otf \
           ~/Library/Fonts/
 
-The symbols font matters as much as the other one: the fontconfig rule that
-supplies the Nerd Font icons on Linux does nothing here, so without it
-installed there is nothing for Core Text to fall back to.
+The patched face is the one that matters here: the fontconfig rule that
+supplies the Nerd Font icons on Linux does nothing under Core Text, so a font
+that carries its own icons is what keeps the prompt from turning into boxes.
 
 `brew install --cask font-departure-mono` also works, but pins a version
 independent of this repo, so the terminal can end up looking different from
@@ -264,27 +263,23 @@ repaint, tmux's 16-colour theme and the prompt rule that banned anything a
 bare tty cannot draw all existed for a console that no longer appears.
 
 Its font goes in `/etc/kmscon/kmscon.conf`, as `font-engine=pango` with
-`font-name=Departure Mono`. But kmscon runs as root, so it reads neither
-`~/.local/share/fonts` nor `~/.config/fontconfig` -- both have to be reachable
-from outside `$HOME`:
+`font-name=DepartureMono Nerd Font` -- the patched face, which carries the
+icons itself, so root needs no fallback rule to draw them. But kmscon runs as
+root, and root reads neither `~/.local/share/fonts` nor `~/.config/fontconfig`,
+so the font has to be reachable from outside `$HOME`:
 
     sudo mkdir -p /usr/local/share/fonts/kmscon
-    sudo ln -sfn ~/dotfiles/.local/share/fonts/DepartureMono-Regular.otf \
-                 ~/dotfiles/.local/share/fonts/SymbolsNerdFontMono-Regular.ttf \
+    sudo ln -sfn ~/dotfiles/.local/share/fonts/DepartureMonoNerdFont-Regular.otf \
                  /usr/local/share/fonts/kmscon/
-    sudo ln -sfn ~/dotfiles/.config/fontconfig/conf.d/10-nerd-font-symbols.conf \
-                 /etc/fonts/conf.d/
     sudo fc-cache -f
 
-Links and not copies, or the console drifts from the font in here. The rule
-counts as much as the font: without it root's fallback for Departure Mono is
-Noto Sans, which carries no icons, and everything that draws one gets a box.
+Links and not copies, or the console drifts from the font in here. Check what
+root resolves before blaming kmscon:
 
-    sudo fc-match -s "Departure Mono" | head -2
+    sudo fc-match "DepartureMono Nerd Font"
 
-Symbols Nerd Font Mono has to come second there. kmscon resolves the face once
-at startup, so `systemctl restart kmsconvt@tty1` is what makes a change take --
-and that logs out whatever is on that VT.
+kmscon resolves the face once at startup, so `systemctl restart kmsconvt@tty1`
+is what makes a change take -- and that logs out whatever is on that VT.
 
 `font-size` is in points, so at 96 DPI it wants a value whose pixel height
 comes out whole: 18 gives 24 px, 24 gives 32 px. A fractional height leaves
@@ -325,7 +320,14 @@ survives it.
 
 ### Nerd Font icons
 
-Departure Mono ships no Nerd Font icons, so
+Departure Mono ships no Nerd Font icons, hence the two ways of getting them.
+
+The terminal uses `DepartureMono Nerd Font`, the upstream patched build, which
+carries them in the same face. Powerline separators need that: borrowed from
+the Mono symbols font they get squeezed into one cell and the prompt's segments
+come apart at every seam.
+
+Everywhere else the plain face is enough, and
 `.config/fontconfig/conf.d/10-nerd-font-symbols.conf` prefers `Symbols Nerd
 Font Mono` for it and for generic `monospace`. Only the icons come from there:
 fontconfig weighs glyph coverage, so text keeps resolving to the real font.
