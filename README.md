@@ -245,6 +245,12 @@ there is no display to draw on. `cargo install cargo-update` still applies.
 There is no desktop, but there is a monitor, so the VTs are what gets used.
 kmscon owns them: it replaces the kernel console with its own terminal
 emulator, drawing TrueType fonts and naming itself as a truecolor `$TERM`.
+
+    sudo apt install -t trixie-backports kmscon
+
+Backports because trixie itself carries none. It ships `kmsconvt@.service`,
+which leaves `getty@.service` disabled -- re-enable that one to go back.
+
 That is why nothing here special-cases `TERM=linux` any more -- the palette
 repaint, tmux's 16-colour theme and the prompt rule that banned anything a
 bare tty cannot draw all existed for a console that no longer appears.
