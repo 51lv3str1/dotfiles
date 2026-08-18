@@ -2,3 +2,23 @@
 # package.toml locks. Light mode is unset -- every machine here is dark.
 [flavor]
 dark = "catppuccin-mocha"
+
+# Catppuccin accents with blue; tmux, niri and DMS are all on mauve. Only
+# the chrome moves -- the per-filetype icons keep the flavour's colours.
+[tabs]
+active    = { fg = "#1e1e2e", bg = "#cba6f7", bold = true }
+inactive  = { fg = "#cba6f7", bg = "#313244" }
+sep_inner = { open = "", close = "" }
+sep_outer = { open = "", close = "" }
+
+[mode]
+normal_main = { fg = "#1e1e2e", bg = "#cba6f7", bold = true }
+normal_alt  = { fg = "#cba6f7", bg = "#313244" }
+
+# The powerline caps around the hovered file and the status bar.
+[indicator]
+padding = { open = "", close = "" }
+
+[status]
+sep_left  = { open = "", close = "" }
+sep_right = { open = "", close = "" }
