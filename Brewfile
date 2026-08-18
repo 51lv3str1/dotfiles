@@ -15,6 +15,7 @@ brew "rustup"
 brew "starship"
 brew "stow"
 brew "tmux"
+brew "yazi"
 brew "zsh-autosuggestions"
 brew "zsh-syntax-highlighting"
 
