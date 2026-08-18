@@ -113,20 +113,34 @@ drop anything installed there by another means.
 
 | Formula | Why |
 |---|---|
+| `bat` | `cat` with syntax highlighting |
 | `bitwarden-cli` | secrets, kept out of this repo |
+| `btop` | process and resource monitor |
 | `chafa` | images as terminal characters; works at 8 colours |
 | `cmake` | build dependency for crates that ship C |
+| `dust` | disk usage, sorted by what is actually big |
+| `eza` | `ls` with icons and git state |
 | `fastfetch` | system summary, run by hand |
+| `fd` | friendlier `find` |
+| `ffmpeg` | media conversion; yazi previews video through it |
 | `fzf` | sourced by `.zshrc` for `C-r`, `C-t` and `M-c` |
 | `gh` | GitHub auth and PRs |
+| `glow` | markdown in the terminal |
+| `go` | toolchain for the Go side of things |
+| `imagemagick` | image conversion; yazi previews images through it |
+| `jq` | JSON on the command line |
+| `lazydocker` | docker TUI |
+| `lazygit` | git TUI |
 | `neovim` | editor |
 | `pkgconf` | lets cargo find system libraries |
+| `resvg` | SVG rasteriser yazi previews with |
 | `ripgrep` | what the nvim picker greps with |
 | `rustup` | keg-only; `env.sh` adds its shims to PATH |
 | `starship` | the prompt |
 | `stow` | installs this repo |
 | `tmux` | multiplexer |
 | `yazi` | file manager; `env.sh` wraps it as `y` for the cwd and for chafa |
+| `zoxide` | directory jumping; nothing here wires it into `cd` yet |
 | `zsh-autosuggestions` | sourced by `.zshrc` |
 | `zsh-syntax-highlighting` | sourced last by `.zshrc`, order matters |
 
