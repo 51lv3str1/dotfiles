@@ -22,7 +22,7 @@ directly, so `.zshrc` here becomes `~/.zshrc`.
 | `.local/share/fonts/` | same | Departure Mono, see below |
 | `.local/share/applications/`, `.local/share/icons/` | same | Alacritty desktop entry and icon |
 | `.gitconfig` | `~/.gitconfig` | |
-| `.claude/CLAUDE.md`, `.claude/themes/` | same | the rest of `~/.claude` is excluded, `settings.json` with it: themes travel, picking one does not |
+| `.claude/CLAUDE.md` | same | that one file; the rest of `~/.claude` is credentials and local state |
 
 `README.md` and the git files stay out of `$HOME` through
 `.stow-local-ignore`, which *replaces* stow's built-in ignore list rather than

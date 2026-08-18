@@ -9,11 +9,9 @@ local.toml
 # Homebrew lockfile from `brew bundle` -- machine-specific, regenerated.
 Brewfile.lock.json
 
-# Track CLAUDE.md and the themes only; the rest of ~/.claude is credentials
-# and local state.
+# Track CLAUDE.md only; the rest of ~/.claude is credentials and local state.
 .claude/*
 !.claude/CLAUDE.md
-!.claude/themes/
 
 # Backups made while migrating files into this repo.
 *.bak
