@@ -55,7 +55,9 @@ sourced last:
 
 - `~/.config/shell/local.sh` -- environment, tokens, host quirks
 - `~/.config/shell/local.zsh` -- interactive zsh tweaks
-- `~/.config/alacritty/local.toml` -- enable the `import` in `alacritty.toml`
+- `~/.config/alacritty/local.toml` -- already the last import in
+  `alacritty.toml`, so it wins over `shared.toml`; the phone uses it for a
+  smaller font
 
 ## Region and time
 
