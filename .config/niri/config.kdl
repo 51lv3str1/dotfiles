@@ -249,3 +249,7 @@ include "animations/glitch/animations.kdl"
 
 // Last, so it overrides the dms files above.
 include "overrides.kdl"
+
+// Per-machine, git-ignored, and last of all: the phone disables niri's power
+// key handling here, which would be the wrong default on a laptop.
+include optional=true "local.kdl"

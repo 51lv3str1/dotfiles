@@ -34,3 +34,6 @@ Brewfile.lock.json
 # DMS mirrors the compositor's live output state here -- monitor names, modes,
 # positions. Pure per-machine hardware, regenerated on every start.
 .config/niri/dms/outputs.kdl
+
+# Per-machine niri overrides, included last by config.kdl.
+.config/niri/local.kdl
