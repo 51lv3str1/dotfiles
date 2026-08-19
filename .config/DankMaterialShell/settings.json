@@ -419,7 +419,7 @@
   "fadeToLockEnabled": true,
   "fadeToLockGracePeriod": 5,
   "fadeToDpmsEnabled": true,
-  "fadeToDpmsGracePeriod": 5,
+  "fadeToDpmsGracePeriod": 30,
   "launchPrefix": "",
   "gtkThemingEnabled": false,
   "qtThemingEnabled": false,
