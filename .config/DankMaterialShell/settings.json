@@ -760,6 +760,14 @@
         {
           "id": "dankActions:variant_1776388645376",
           "enabled": true
+        },
+        {
+          "id": "dankActions:variant_rotate_to_landscape",
+          "enabled": true
+        },
+        {
+          "id": "dankActions:variant_rotate_to_portrait",
+          "enabled": true
         }
       ],
       "spacing": 4,
