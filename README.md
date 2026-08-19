@@ -71,11 +71,17 @@ Locking cannot work that way -- the phone must never lock itself, the laptop
 must -- so it is not DMS's job here. `swayidle` does it, from each machine's
 `local.kdl`:
 
-    spawn-at-startup "swayidle" "-w" "timeout" "300" "dms ipc call lock lock"
+    spawn-at-startup "swayidle" "-w" "timeout" "300" \
+      "dms ipc call inhibit status | grep -qi disabled && dms ipc call lock lock"
 
 Fifteen minutes on the workstation, five on the laptop, absent on the phone.
 It comes from apt (`swayidle`), not the Brewfile: Homebrew carries no formula
 for it.
+
+The status check is what makes the shell's idle-inhibitor tile mean something
+here. swayidle takes its idle signal straight from the compositor and never
+sees that inhibitor, so measured with a ten-second timeout it fired with the
+tile on and off alike; asking DMS first is what stops it.
 
 Suspend stays off everywhere. On the phone it is not a power saving but an
 outage: NetworkManager takes down the radios before sleep, so a suspended
