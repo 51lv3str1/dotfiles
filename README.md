@@ -58,6 +58,29 @@ sourced last:
 - `~/.config/alacritty/local.toml` -- already the last import in
   `alacritty.toml`, so it wins over `shared.toml`; the phone uses it for a
   smaller font
+- `~/.config/niri/local.kdl` -- included last by `config.kdl`, after the dms
+  files and `overrides.kdl`
+
+### Idle: blank here, lock there
+
+DMS blanks the screen on its own, but its timeouts live in the settings file
+every machine shares, so they cannot differ per host: ten minutes on mains,
+three on battery.
+
+Locking cannot work that way -- the phone must never lock itself, the laptop
+must -- so it is not DMS's job here. `swayidle` does it, from each machine's
+`local.kdl`:
+
+    spawn-at-startup "swayidle" "-w" "timeout" "300" "dms ipc call lock lock"
+
+Fifteen minutes on the workstation, five on the laptop, absent on the phone.
+It comes from apt (`swayidle`), not the Brewfile: Homebrew carries no formula
+for it.
+
+Suspend stays off everywhere. On the phone it is not a power saving but an
+outage: NetworkManager takes down the radios before sleep, so a suspended
+phone is a phone with no connection. `.config/niri/local.kdl` there also takes
+the power key away from niri, which would otherwise suspend on every press.
 
 ## Region and time
 
