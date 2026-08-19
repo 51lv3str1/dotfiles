@@ -19,7 +19,7 @@ while :; do
         # Stamp the moment the panel lit up. niri wakes the screen with the
         # very key press that also runs the power-key bind, so that bind has
         # to tell "you just woke me" from "you want me dark".
-        [ "$want" = 0 ] && date +%s > "${XDG_RUNTIME_DIR:-/tmp}/dpms-on-since"
+        [ "$want" = 0 ] && date +%s%3N > "${XDG_RUNTIME_DIR:-/tmp}/dpms-on-since"
     fi
     sleep 0.1
 done

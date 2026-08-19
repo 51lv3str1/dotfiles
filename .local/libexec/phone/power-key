@@ -19,7 +19,9 @@ if [ "$(cat "$DPMS" 2>/dev/null)" = "Off" ]; then
 fi
 
 sleep 0.25
-if [ -r "$STAMP" ] && [ $(( $(date +%s) - $(cat "$STAMP") )) -le 2 ]; then
+# Milliseconds, not seconds: whole seconds rounded a 2 second window up to a
+# 3 second wait before the key would blank again, which is an age in the hand.
+if [ -r "$STAMP" ] && [ $(( $(date +%s%3N) - $(cat "$STAMP") )) -le 600 ]; then
     exit 0
 fi
 
