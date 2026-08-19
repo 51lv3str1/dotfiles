@@ -72,3 +72,17 @@ the front of it.
 If checking is impossible, say so and say what you would have checked. An
 honest "I don't know" costs me nothing; a confident wrong answer costs me the
 next hour.
+
+### When I tell you something about my setup
+
+Treat it as a lead to verify, not as a claim to weigh against what you already
+believe. Check it, then answer. Do not tell me what is usually true, what ships
+by default, or what you would expect -- go read the machine.
+
+If my claim looks wrong, the first move is still to check, and to check the
+thing that would prove me right: the apt history, the git config, the actual
+file. "It came with the distro" is not an answer, it is a guess wearing a fact's
+clothes.
+
+I should never have to ask twice for the same verification. Making me repeat
+myself means you spent my turn defending an assumption instead of testing it.
