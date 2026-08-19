@@ -1,0 +1,27 @@
+#!/bin/sh
+# Phone power key. niri's own handling suspends, which kills wifi, so the key
+# is bound here instead. niri still lights the panel by itself on this key, so
+# waking is only a fallback here; blanking is the real job.
+#
+# The wait is the crux: the press that woke the screen reaches this bind while
+# the panel is already lit, and blanking on it is what made the screen flash on
+# and die. touch-follow-dpms stamps when the panel lit up, but it polls, so it
+# needs a moment to notice before that stamp can be trusted.
+#
+# Blank through the compositor (~55 ms), lock through the shell after (~270 ms,
+# by then the screen is dark). lockAndOutputsOff is not used: on an already
+# locked session it silently does nothing.
+DPMS=/sys/class/drm/card1-DSI-1/dpms
+STAMP="${XDG_RUNTIME_DIR:-/tmp}/dpms-on-since"
+
+if [ "$(cat "$DPMS" 2>/dev/null)" = "Off" ]; then
+    exec niri msg action power-on-monitors
+fi
+
+sleep 0.25
+if [ -r "$STAMP" ] && [ $(( $(date +%s) - $(cat "$STAMP") )) -le 2 ]; then
+    exit 0
+fi
+
+niri msg action power-off-monitors
+exec dms ipc call lock lock

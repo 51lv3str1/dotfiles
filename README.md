@@ -83,6 +83,32 @@ here. swayidle takes its idle signal straight from the compositor and never
 sees that inhibitor, so measured with a ten-second timeout it fired with the
 tile on and off alike; asking DMS first is what stops it.
 
+### The phone's power key
+
+`.local/libexec/phone/` holds two scripts that only the phone runs, wired up
+from its `local.kdl`. They are here rather than on the phone alone so a
+reinstall does not lose them; nothing else starts them.
+
+`power-key` is bound to `XF86PowerOff`. niri would otherwise suspend on that
+key, and the compositor blanks or lights the panel in about 55 ms against the
+270 ms a `dms ipc call` costs on that hardware, so the script blanks through
+niri first and asks the shell to lock afterwards, with the screen already
+dark. It never queries the lock state -- that query alone would double the
+delay, and `lock lock` is a no-op when the session is locked. The shell's own
+`lockAndOutputsOff` is unused: on an already locked session it silently does
+nothing, whatever the fade settings say.
+
+The subtlety is the press that wakes the screen: niri lights the panel from
+that same press and then runs the bind, so without care the screen flashes on
+and dies. `touch-follow-dpms` stamps the moment the panel lights up, and the
+bind waits a quarter second -- long enough for that poll to land -- before
+deciding it was a deliberate press.
+
+That watcher's real job is the touchscreen: it inhibits the digitiser through
+`/sys/class/input/*/inhibited` whenever the panel is dark, the way a phone
+does. Without it, niri wakes on any input, touch included, and there is no
+setting to opt out.
+
 Suspend stays off everywhere. On the phone it is not a power saving but an
 outage: NetworkManager takes down the radios before sleep, so a suspended
 phone is a phone with no connection. `.config/niri/local.kdl` there also takes

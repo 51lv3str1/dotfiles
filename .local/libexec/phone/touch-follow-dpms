@@ -1,0 +1,25 @@
+#!/bin/sh
+# Inhibit the touchscreen whenever the panel is dark, release it when it is
+# lit. A phone ignores touches on a dark screen; niri instead wakes on any
+# input and offers no way to opt out, and the shell owns when the screen goes
+# dark, so neither of them can do this. Polling the connector is what works
+# no matter who turned the screen off.
+TOUCH=$(grep -lx 'Synaptics S3706B' /sys/class/input/input*/name 2>/dev/null | head -1)
+TOUCH=${TOUCH%/name}
+[ -n "$TOUCH" ] || exit 1
+last=
+
+while :; do
+    case "$(cat /sys/class/drm/card1-DSI-1/dpms 2>/dev/null)" in
+        Off) want=1 ;;
+        *)   want=0 ;;
+    esac
+    if [ "$want" != "$last" ]; then
+        sudo -n sh -c "echo $want > $TOUCH/inhibited" 2>/dev/null && last=$want
+        # Stamp the moment the panel lit up. niri wakes the screen with the
+        # very key press that also runs the power-key bind, so that bind has
+        # to tell "you just woke me" from "you want me dark".
+        [ "$want" = 0 ] && date +%s > "${XDG_RUNTIME_DIR:-/tmp}/dpms-on-since"
+    fi
+    sleep 0.1
+done
