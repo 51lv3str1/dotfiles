@@ -418,7 +418,7 @@
   "loginctlLockIntegration": true,
   "fadeToLockEnabled": true,
   "fadeToLockGracePeriod": 5,
-  "fadeToDpmsEnabled": false,
+  "fadeToDpmsEnabled": true,
   "fadeToDpmsGracePeriod": 30,
   "launchPrefix": "",
   "gtkThemingEnabled": false,
