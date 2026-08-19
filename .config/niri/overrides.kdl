@@ -23,7 +23,9 @@ binds {
 // Only the phone has this output, so this block is inert everywhere else.
 // DMS hardcodes its popout widths -- the control center asks for 550 logical
 // px -- and niri's own scale of 2.25 leaves the panel 480 wide, so the popups
-// ran off the screen. 1.75 gives 617 and they fit.
+// ran off the screen. This is the versioned source for the phone's scale;
+// dms/outputs.kdl only mirrors whatever niri ends up applying, which is why
+// that file is git-ignored rather than tracked.
 output "DSI-1" {
-    scale 1.75
+    scale 1.5
 }

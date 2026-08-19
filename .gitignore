@@ -30,3 +30,7 @@ Brewfile.lock.json
 # them are versioned; the plugin trees are not.
 .config/DankMaterialShell/plugins/
 .config/DankMaterialShell/plugin_settings.json
+
+# DMS mirrors the compositor's live output state here -- monitor names, modes,
+# positions. Pure per-machine hardware, regenerated on every start.
+.config/niri/dms/outputs.kdl
