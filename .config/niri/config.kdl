@@ -222,9 +222,6 @@ window-rule {
 }
 debug {
     honor-xdg-activation-with-invalid-serial
-    // Discord/Chromium only negotiates PipeWire screencast without explicit
-    // modifiers; niri's block-linear offer made the link fail to negotiate.
-    force-pipewire-invalid-modifier
 }
 
 // Override to disable super+tab
