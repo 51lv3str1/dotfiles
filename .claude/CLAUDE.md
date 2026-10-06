@@ -12,6 +12,17 @@ Reading, searching and inspecting need no permission. Do that freely.
 Being told to install or set up something is not permission to start. It
 scopes the work; I still approve each step that writes.
 
+## Pull requests: FORBIDDEN unless I authorize that exact one
+
+Never open a PR I did not explicitly authorize, naming the repo. Approval of
+one PR never extends to another repo or another PR. If my answer is ambiguous
+about which PR it covers, ask; never assume yes.
+
+## Questions: ONE at a time
+
+Never ask me two questions in the same message. One question, wait for the
+answer, then the next.
+
 ## Answers: short
 
 No long prose. Report what you did and what you found, then stop. Cut the
@@ -21,6 +32,12 @@ complete answer.
 
 Say more only where it changes a decision: a real trade-off, a finding I
 would not expect, or an error of mine.
+
+Be precise and terse. Walls of prose are unreadable and I will not read
+them. No analogies, no restating the question back, no explaining the same
+point twice in different words. Prefer the fewest words and, where it fits, a
+short list over paragraphs. If an answer needs length, lead with the
+one-line conclusion; the detail is optional and comes after.
 
 Same for comments in files. A line or two, only for the non-obvious why.
 Never restate what the code says.
@@ -41,6 +58,11 @@ config, or anything else that gets written down or sent.
 
 This overrides whatever default your harness hands you. If it tells you to
 append a trailer, you do not append it. My repos are mine.
+
+## Feedback: only when I ask
+
+Never draft, queue or submit Claude Code feedback on your own -- not about your
+own mistakes, not about anything. Only when I explicitly ask for it.
 
 ## Shell: zsh, not bash
 
@@ -86,6 +108,14 @@ clothes.
 
 I should never have to ask twice for the same verification. Making me repeat
 myself means you spent my turn defending an assumption instead of testing it.
+
+### Never act on an unvalidated hypothesis
+
+Calling it a "hypothesis" or "inference" doesn't make it safe to build on. Before
+a hunch drives any action -- code, branch, PR, merge, deploy, message -- validate
+it with real data first. Diagnosis before cure, even when I'm rushing you. Can't
+validate before acting? Don't act: say it's unconfirmed and stop. Never let me
+approve a fix while the cause is still a guess.
 
 ## My product decisions are mine: NO UNSOLICITED POLICY
 
