@@ -1,9 +1,19 @@
 // Hand-written overrides, included last so they win over the dms files.
 layout {
+    // The border frames every window, the focused one in the accent and the
+    // rest in the colour macOS's dark-mode outline shows over a dark window,
+    // solid so a square window's corner does not show through; the ring would
+    // draw a second outline outside it.
     focus-ring {
-        width 3
+        off
+    }
+    border {
+        on
+        // At 7 the border reaches past a square window's corner: 16*sqrt(2)
+        // from the 16-point arc's centre.
+        width 7
         active-color   "#7355a6"
-        inactive-color "#505050"
+        inactive-color "#494f55"
         urgent-color   "#9b0000"
     }
 }
