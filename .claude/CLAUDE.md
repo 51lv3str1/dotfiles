@@ -70,11 +70,13 @@ unless I ask for feedback in that same message.
 
 ## Environment
 
-- Debian 13 (trixie), x86_64. GitHub account `51lv3str1`; use `gh` for issues,
-  PRs and API calls.
+- Machines: Debian 13 (trixie) x86_64, and macOS (Apple Silicon, Homebrew).
+  Check `uname -s` before running anything OS-specific (apt vs brew, GNU vs
+  BSD `sed`/`date`, systemd vs launchd). GitHub account `51lv3str1`; use `gh`
+  for issues, PRs and API calls.
 - Installed and preferred: `rg` and `fd` (not `grep -r` / `find`), `jq`, `gh`,
   `bat`, `eza`, `fzf`, `zoxide`.
-- Docker, kubectl, ansible and terraform are **not** installed. Check with
+- Docker, kubectl, ansible and terraform vary by machine. Check with
   `command -v` before assuming a tool exists; never install packages on your
   own initiative.
 - Non-interactive shell: pass `--no-pager` to `journalctl`/`systemctl`/`git log`,
