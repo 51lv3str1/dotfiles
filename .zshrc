@@ -59,6 +59,12 @@ command -v fzf >/dev/null 2>&1 && source <(fzf --zsh)
 # Machine-specific, not versioned. Before the plugins so it can bind keys.
 [ -r "$HOME/.config/shell/local.zsh" ] && . "$HOME/.config/shell/local.zsh"
 
+# --- sdkman -------------------------------------------------------------
+# Defines the `sdk` function and prepends the selected candidates to PATH.
+# Ahead of the plugin block below, which insists on staying last.
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+
 # --- Plugins ------------------------------------------------------------
 # brew where there is one, the distro's own share/ otherwise: apt uses
 # /usr/share, Arch nests them under zsh/plugins.
