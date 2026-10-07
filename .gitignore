@@ -6,6 +6,13 @@ local.zsh
 # there lands here rather than outside it.
 local.toml
 
+# stow folds ~/.config/cognilite into the repo, so everything cognilite writes
+# there lands here. The MCP driver token is a credential; .tmp files are its
+# atomic-write staging; dated backups stay on the machine that made them.
+.config/cognilite/mcp-token
+.config/cognilite/**/*.tmp
+*.bak.*
+
 # Homebrew lockfile from `brew bundle` -- machine-specific, regenerated.
 Brewfile.lock.json
 

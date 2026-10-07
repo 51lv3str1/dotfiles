@@ -1,0 +1,3 @@
+last_model = "gemma4:e2b"
+context_window_tokens = 131072
+default_max_tokens = 32768
