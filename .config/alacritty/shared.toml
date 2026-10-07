@@ -5,6 +5,9 @@ TERM = "xterm-256color"
 decorations = "None"
 padding = { x = 12, y = 12 }
 opacity = 0.90
+# Left Option sends Alt so terminal apps get Alt+key chords; right Option keeps
+# composing special characters and accents.
+option_as_alt = "OnlyLeft"
 
 [scrolling]
 history = 3023
@@ -37,3 +40,9 @@ bindings = [
   { key = "Key0",    mods = "Control",       action = "ResetFontSize"    },
   { key = "Enter",   mods = "Shift",         chars = "\n" },
 ]
+
+[debug]
+# Drops the WARN level, whose only regular visitor is the spurious
+# NSPasteboard#writeObjects failure on macOS -- the copy actually succeeds.
+# Read once at startup, so a running instance keeps its old level.
+log_level = "Error"
