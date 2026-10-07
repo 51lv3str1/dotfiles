@@ -68,6 +68,10 @@ _path_prepend "$HOME/.local/bin"
 [ -n "${HOMEBREW_PREFIX-}" ] && _path_prepend "$HOMEBREW_PREFIX/opt/rustup/bin"
 _path_prepend "$HOME/.cargo/bin"
 
+# libpq is keg-only as well: brew installs psql and pg_dump but links neither,
+# to avoid colliding with a full postgresql formula.
+[ -n "${HOMEBREW_PREFIX-}" ] && _path_prepend "$HOMEBREW_PREFIX/opt/libpq/bin"
+
 # Keep the first occurrence of each entry.
 _path_dedupe() {
     _out=""
