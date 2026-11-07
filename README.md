@@ -274,6 +274,11 @@ before DMS has run once:
 - `.config/niri/dms/colors.kdl`
 - `.config/alacritty/dank-theme.toml`
 
+DMS 2.x keeps its config in `~/.config/dms` and leaves
+`~/.config/DankMaterialShell` as a symlink to it, so only `settings.json` in
+there links into this repo. stow does not own that directory symlink and
+refuses the whole package while it exists: a restow needs it out of the way.
+
 ## macOS
 
 Alacritty is installed from cargo there too, with the `.app` bundle built by
