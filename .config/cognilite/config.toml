@@ -1,6 +1,31 @@
-last_model = "gemma4:e2b"
+last_model = "Ornith-1.5-9B-Q8_0"
 context_window_tokens = 131072
 default_max_tokens = 32768
 
 [theme]
 name = "catppuccin-mocha"
+
+[presets]
+mode = "per-model"
+
+[presets.ornith]
+spec-type = "ngram-mod"
+
+[presets.qwen3.6]
+fit-target = "256"
+
+[presets.qwen3.8-27b]
+cache-type-k = "q8_0"
+cache-type-v = "q8_0"
+spec-type = "ngram-mod"
+fit-target = "256"
+
+[presets.flash-next-iq1]
+fit-target = "512"
+threads = "24"
+
+[presets.models]
+"Ornith-1.5-9B-Q8_0" = "ornith"
+"Qwen3.6-35B-A3B-MXFP4_MOE" = "qwen3.6"
+"Qwen3.8-27B-UD-Q4_K_S" = "qwen3.8-27b"
+"Qwen3.8-Flash-Next-UD-IQ1_S" = "flash-next-iq1"
