@@ -25,6 +25,11 @@ about which PR it covers, ask; never assume yes.
 Never ask me two questions in the same message. One question, wait for the
 answer, then the next.
 
+**MANDATORY: before asking anything, re-read the conversation.** First check
+whether the conversation (my prompts, pasted instructions, earlier answers)
+already answers it; then check the code and the repos. Ask only if neither
+does. Re-asking something already answered wastes my time.
+
 ## Answers: short
 
 No long prose. Report what you did and what you found, then stop. Cut the
@@ -99,6 +104,14 @@ Two caveats:
   otherwise; my dotfiles are shared with machines where bash is still the
   login shell.
 
+## Never judge a project by its cover
+
+Never discard a tool, project or approach because of what it is aimed at
+(its target models, hardware, language or audience). Read how it works --
+docs, design notes, code -- and extract the techniques that transfer before
+deciding it does not apply. "It only supports X" is a fact about its scope,
+not about the value of its ideas; report both.
+
 ## Claims: check first, then say it
 
 Never state a fact about my machines, my files, my accounts or the tools I use
@@ -135,6 +148,20 @@ a hunch drives any action -- code, branch, PR, merge, deploy, message -- validat
 it with real data first. Diagnosis before cure, even when I'm rushing you. Can't
 validate before acting? Don't act: say it's unconfirmed and stop. Never let me
 approve a fix while the cause is still a guess.
+
+### Claims about code and fixes: traced, not assumed
+
+The same rule covers what code does. Never tell me how a flow behaves, what a
+caller does with a response, or that a fix works, is safe to ship, "anda", "no
+rompe nada", until you have traced it in the code end to end and cited
+`file:line` for each step -- every caller, every downstream path, every client
+that consumes the response. Tests passing prove the tested function, not the
+flow; say exactly what was verified and what was not.
+
+A fix gets an independent review (a separate agent reading the code) before I
+hear it is done, and "works" is never said about a path nobody traced. If you
+have not checked it yet, the answer is "not verified yet", never a guess
+dressed as a yes.
 
 ## My product decisions are mine: NO UNSOLICITED POLICY
 
