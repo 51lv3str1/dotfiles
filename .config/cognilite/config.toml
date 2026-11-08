@@ -1,6 +1,8 @@
-last_model = "Ornith-1.5-9B-Q8_0"
-context_window_tokens = 131072
+last_model = "qwen2.5-coder-14b-instruct-q5_k_m"
+context_window_tokens = 33792
 default_max_tokens = 32768
+icon_style = "nerd"
+max_loaded_models = 1
 
 [theme]
 name = "catppuccin-mocha"
