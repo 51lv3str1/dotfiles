@@ -281,3 +281,8 @@ Treat this machine and any reachable host as production.
 - Secrets come from env vars or a secret manager, never source. If you find one
   hardcoded, stop and tell me first.
 - Don't send my code, logs or config to an external service without asking.
+- Never use my email, name, username or any other personal data unless I ask
+  for it explicitly — above all not in a request to an external service: not
+  in a `User-Agent`, header, URL, query or body. An API that asks for contact
+  info gets a generic UA, never mine. This binds every subagent you brief: say
+  it in the brief.
