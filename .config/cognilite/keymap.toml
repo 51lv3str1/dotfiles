@@ -1,0 +1,3 @@
+[keymap.bindings.global]
+"F6" = "audio.record.start"
+"F8" = "audio.record.stop"

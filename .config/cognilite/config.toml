@@ -3,6 +3,7 @@ context_window_tokens = 33792
 default_max_tokens = 32768
 icon_style = "nerd"
 max_loaded_models = 1
+tool_policies = "mcp__google-home__pause=allow,mcp__google-home__play_file=allow,mcp__google-home__play_url=allow,mcp__google-home__resume=allow,mcp__google-home__set_volume=allow,mcp__google-home__status=allow,mcp__google-home__stop=allow"
 
 [theme]
 name = "catppuccin-mocha"
@@ -26,8 +27,46 @@ fit-target = "256"
 fit-target = "512"
 threads = "24"
 
+[presets.flash-next-q4]
+fit-target = "512"
+threads = "24"
+
+[presets.flash-next-iq4xs]
+fit-target = "512"
+threads = "24"
+
 [presets.models]
 "Ornith-1.5-9B-Q8_0" = "ornith"
 "Qwen3.6-35B-A3B-MXFP4_MOE" = "qwen3.6"
 "Qwen3.8-27B-UD-Q4_K_S" = "qwen3.8-27b"
 "Qwen3.8-Flash-Next-UD-IQ1_S" = "flash-next-iq1"
+"Qwen3.8-Flash-Next-UD-Q4_K_XL" = "flash-next-q4"
+"Qwen3.8-Flash-Next-UD-IQ4_XS" = "flash-next-iq4xs"
+
+[delegation]
+general = "gemma4:e2b"
+
+[permissions.hosts]
+"localhost" = "allow"
+"127.0.0.1" = "allow"
+
+[image]
+server_bin = "/home/silver/GitHub/stable-diffusion.cpp/build/bin/sd-server"
+diffusion_model = "/home/silver/.local/share/cognilite/models/sd/qwen-image-2.1/qwen_image_2.1-Q8_0.gguf"
+vae = "/home/silver/.local/share/cognilite/models/sd/qwen-image-2.1/qwen_image_2.1_vae_bf16.safetensors"
+llm = "/home/silver/.local/share/cognilite/models/sd/qwen-image-2.1/Qwen3VL-8B-Instruct-Q8_0.gguf"
+llm_vision = "/home/silver/.local/share/cognilite/models/sd/qwen-image-2.1/mmproj-Qwen3VL-8B-Instruct-F16.gguf"
+args = "--offload-to-cpu"
+
+[audio]
+asr_model = "Qwen3-ASR-1.7B-Q8_0"
+tts_model = "~/.local/share/cognilite/models/tts/chatterbox-multilingual.gguf"
+tts_mmproj = "~/.local/share/cognilite/models/tts/chatterbox-multilingual-mmproj.gguf"
+tts_lang = "es"
+autoplay = false
+
+[mcp]
+google-home = "python3 /home/silver/GitHub/vibecoded-software-factory/google-home-mini-mcp/scripts/google_home_mcp.py"
+
+[mcp.google-home.env]
+CAST_HOST = "192.168.2.174"
