@@ -3,7 +3,6 @@ context_window_tokens = 33792
 default_max_tokens = 32768
 icon_style = "nerd"
 max_loaded_models = 1
-tool_policies = "mcp__google-home__pause=allow,mcp__google-home__play_file=allow,mcp__google-home__play_url=allow,mcp__google-home__resume=allow,mcp__google-home__set_volume=allow,mcp__google-home__status=allow,mcp__google-home__stop=allow"
 
 [theme]
 name = "catppuccin-mocha"
