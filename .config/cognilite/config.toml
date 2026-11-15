@@ -1,4 +1,4 @@
-last_model = "qwen2.5-coder-14b-instruct-q5_k_m"
+last_model = "Qwen3.8-Flash-Next-UD-IQ1_S"
 context_window_tokens = 33792
 default_max_tokens = 32768
 icon_style = "nerd"
@@ -64,9 +64,3 @@ tts_model = "~/.local/share/cognilite/models/tts/chatterbox-multilingual.gguf"
 tts_mmproj = "~/.local/share/cognilite/models/tts/chatterbox-multilingual-mmproj.gguf"
 tts_lang = "es"
 autoplay = false
-
-[mcp]
-google-home = "python3 /home/silver/GitHub/vibecoded-software-factory/google-home-mini-mcp/scripts/google_home_mcp.py"
-
-[mcp.google-home.env]
-CAST_HOST = "192.168.2.174"
