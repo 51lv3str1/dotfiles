@@ -107,6 +107,20 @@ if [ -n "${HOMEBREW_PREFIX-}" ] && [ -d "$HOMEBREW_PREFIX/opt/openssl@3/lib/pkgc
             ;;
     esac
 fi
+# Linuxbrew's pkg-config searches only Homebrew's tree, so -sys crates miss
+# distro libraries (alsa-sys and libasound2-dev). Add the system's after it.
+if [ -n "${HOMEBREW_PREFIX-}" ] && [ "${DOTFILES_OS-}" != Darwin ]; then
+    _arch=${HOSTTYPE:-${CPUTYPE:-$(uname -m)}}
+    for _dir in "/usr/lib/$_arch-linux-gnu/pkgconfig" /usr/lib64/pkgconfig /usr/lib/pkgconfig /usr/share/pkgconfig; do
+        [ -d "$_dir" ] || continue
+        case ":${PKG_CONFIG_PATH-}:" in
+            *":$_dir:"*) ;;
+            *) PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+$PKG_CONFIG_PATH:}$_dir" ;;
+        esac
+    done
+    unset _arch _dir
+    export PKG_CONFIG_PATH
+fi
 
 # --- Defaults -----------------------------------------------------------
 export EDITOR="${EDITOR:-vi}"
